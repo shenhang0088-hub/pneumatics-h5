@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3.1 工件转运装置 · FluidSIM 装配指导</title>
+<style>
+:root{
+  --bg:#0e1420; --panel:#161e2e; --panel2:#1c2740; --line:#2a3852;
+  --ink:#e8edf6; --muted:#8a97ad; --accent:#4aa3ff; --accent2:#5fe0b8;
+  --on:#33d6a6; --warn:#ffb454; --piston:#f2a83c;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+header{padding:16px 22px;border-bottom:1px solid var(--line)}
+header h1{font-size:19px;margin:0;font-weight:600}
+header .sub{color:var(--muted);font-size:13px;margin-top:4px}
+.wrap{padding:16px;max-width:1100px;margin:0 auto}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+.card h2{font-size:13px;color:var(--muted);margin:0 0 10px;font-weight:600;letter-spacing:.04em}
+.scheme-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.scheme-tab{flex:1;min-width:150px;cursor:pointer;user-select:none;border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:var(--panel2);transition:border-color .15s,background .15s}
+.scheme-tab .t{font-size:14px;font-weight:600}
+.scheme-tab .d{font-size:12px;color:var(--muted);margin-top:3px}
+.scheme-tab.active{border-color:var(--accent);background:rgba(74,163,255,.12)}
+.scheme-tab.active .t{color:var(--accent)}
+.grid{display:grid;grid-template-columns:1.1fr 1fr;gap:14px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.stage{display:flex;justify-content:center;overflow:auto}
+svg{max-width:100%;height:auto}
+.lbl{font-size:11px;fill:var(--muted)}
+.lbl.on{fill:var(--on)}
+.node-box{fill:var(--panel2);stroke:var(--line);stroke-width:1.5}
+.node-t{font-size:12.5px;fill:var(--ink);font-weight:600}
+.node-d{font-size:10px;fill:var(--muted)}
+.air{fill:none;stroke:#243149;stroke-width:2.5}
+.air.on{stroke:var(--on);stroke-width:3}
+.cyl-body{fill:#22304a;stroke:var(--line);stroke-width:1.5}
+.piston{fill:var(--piston);opacity:.95}
+.piston-cap{fill:#3a4d70;stroke:var(--ink);stroke-width:1}
+.title-t{font-size:13px;fill:var(--ink);font-weight:700}
+.wire{fill:none;stroke:#5a6a86;stroke-width:1.6}
+.coil{fill:none;stroke:#5a6a86;stroke-width:1.6}
+.coil.on{stroke:var(--warn)}
+.pick{list-style:none;margin:0;padding:0}
+.pick li{display:flex;gap:8px;padding:7px 8px;border-radius:8px;background:var(--panel2);margin-bottom:6px;font-size:13px;align-items:flex-start}
+.pick .n{flex:0 0 18px;height:18px;border-radius:5px;background:var(--accent);color:#06111f;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}
+.pick .lib{color:var(--muted);font-size:11px;display:block;margin-top:2px}
+.note{font-size:13px;line-height:1.6;color:var(--ink);background:var(--panel2);border-radius:10px;padding:11px}
+.note .tag{color:var(--accent);font-weight:600}
+.steps{font-size:13px;line-height:1.7;color:var(--ink)}
+.steps ol{margin:0;padding-left:18px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+.compare{display:grid;gap:8px}
+.c-row{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:7px 9px;border-radius:8px;background:var(--panel2)}
+.c-k{color:var(--muted)}
+footer{padding:12px 22px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<header>
+  <h1>3.1 工件转运装置 · FluidSIM 装配指导</h1>
+  <div class="sub">三种控制方案 → 精确到"从哪个库拖哪个元件"，照着装 5 分钟/个，按 F9 即可运行</div>
+</header>
+<div class="wrap">
+  <div class="scheme-tabs" id="tabs">
+    <div class="scheme-tab active" data-s="direct"><div class="t">① 直接控制（人控阀）</div><div class="d">回路最简，教学入门首选</div></div>
+    <div class="scheme-tab" data-s="indirect"><div class="t">② 间接控制（气控阀）</div><div class="d">气控放大 + 记忆功能</div></div>
+    <div class="scheme-tab" data-s="elec"><div class="t">③ 电气控制（电磁阀+继电器）</div><div class="d">电信号，可扩展，可自锁</div></div>
+  </div>
+
+  <div class="card">
+    <h2>回路示意（标准 ISO 符号）</h2>
+    <div class="grid">
+      <div class="stage"><svg id="scene" width="560" height="430" viewBox="0 0 560 430"></svg></div>
+      <div>
+        <h2 style="font-size:13px;color:var(--muted);margin:0 0 10px;font-weight:600">FluidSIM 元件装配清单</h2>
+        <ol class="pick" id="pick"></ol>
+      </div>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--on)"></span>压缩空气</span>
+      <span><span class="dot" style="background:var(--accent2,#5fe0b8)"></span>控制信号</span>
+      <span><span class="dot" style="background:var(--warn)"></span>电气</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>在 FluidSIM 里的操作步骤</h2>
+    <div class="steps" id="steps"></div>
+  </div>
+
+  <div class="card">
+    <h2>方案差异对照</h2>
+    <div class="compare" id="compare"></div>
+  </div>
+</div>
+<footer>
+  教学用法：学生先在 FluidSIM 按清单拖元件连线（照本指导），F9 仿真观察气缸伸缩与信号传递；再对照微课视频"运行/单步"环节。三种方案动作顺序一致，差异在换向阀驱动方式。
+</footer>
+<script>
+const svg=document.getElementById("scene"),NS="http://www.w3.org/2000/svg";
+let scheme="direct";
+function el(t,a,c){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);(c||[]).forEach(x=>{if(typeof x==="string")e.textContent=x;else e.appendChild(x);});return e;}
+function poly(p,ex){return el("polyline",Object.assign({points:p.map(q=>q.join(",")).join(" ")},ex||{}));}
+
+function build(){
+  svg.innerHTML="";
+  const airOn=true;
+  // air path
+  const a1=poly([[60,300],[300,300]],{class:"air"+(airOn?" on":"")});
+  const a2=poly([[360,300],[430,300]],{class:"air"+(airOn?" on":"")});
+  svg.appendChild(a1); svg.appendChild(a2);
+  // source
+  svg.appendChild(el("rect",{x:20,y:270,width:80,height:60,rx:8,class:"node-box"}));
+  svg.appendChild(el("text",{x:60,y:298,class:"node-t","text-anchor":"middle"}),"气源");
+  svg.appendChild(el("text",{x:60,y:314,class:"node-d","text-anchor":"middle"}),"压缩空气");
+  // main valve
+  svg.appendChild(el("rect",{x:300,y:270,width:60,height:60,rx:6,class:"node-box"}));
+  svg.appendChild(el("rect",{x:306,y:276,width:24,height:48,rx:3,fill:"#22304a",stroke:"#5a6a86"}));
+  svg.appendChild(el("rect",{x:332,y:276,width:24,height:48,rx:3,fill:"#22304a",stroke:"#5a6a86"}));
+  const vt=el("text",{x:330,y:258,class:"node-d","text-anchor":"middle","text":""});
+  vt.textContent = scheme==="direct"?"人控 5/2 换向阀":scheme==="indirect"?"气控 5/2 换向阀":"电磁阀 5/2";
+  svg.appendChild(vt);
+  // cylinder
+  svg.appendChild(el("text",{x:480,y:258,class:"node-d","text-anchor":"middle"}),"双作用气缸 1A1");
+  svg.appendChild(el("rect",{x:430,y:272,width:120,height:56,rx:4,class:"cyl-body"}));
+  const rod=el("g",{});
+  rod.appendChild(el("rect",{x:490,y:292,width:56,height:16,rx:2,class:"piston"}));
+  rod.appendChild(el("rect",{x:486,y:282,width:12,height:36,rx:2,class:"piston-cap"}));
+  svg.appendChild(rod);
+  svg.appendChild(el("text",{x:455,y:340,class:"lbl","text-anchor":"middle"}),"A");
+  svg.appendChild(el("text",{x:530,y:340,class:"lbl","text-anchor":"middle"}),"B");
+  svg.appendChild(el("rect",{x:550,y:282,width:30,height:36,rx:3,fill:"#33405e",stroke:"#4a5a7d"}));
+  // scheme-specific control
+  if(scheme==="direct"){
+    svg.appendChild(el("circle",{cx:330,cy:120,r:18,fill:"var(--panel2)",stroke:"#2a3852","stroke-width":"1.5"}));
+    svg.appendChild(el("text",{x:330,y:124,class:"node-t","text-anchor":"middle"}),"S");
+    svg.appendChild(el("text",{x:330,y:158,class:"node-d","text-anchor":"middle"}),"人控按钮 3/2 NC");
+    svg.appendChild(poly([[330,138],[330,270]],{class:"wire"}));
+  } else if(scheme==="indirect"){
+    svg.appendChild(el("rect",{x:250,y:90,width:90,height:44,rx:8,class:"node-box"}));
+    svg.appendChild(el("text",{x:295,y:112,class:"node-t","text-anchor":"middle"}),"梭阀/双压阀");
+    svg.appendChild(el("text",{x:295,y:126,class:"node-d","text-anchor":"middle"}),"逻辑或");
+    svg.appendChild(poly([[295,134],[295,270]],{class:"wire"}));
+  } else {
+    svg.appendChild(el("rect",{x:250,y:90,width:180,height:56,rx:8,class:"node-box"}));
+    svg.appendChild(el("text",{x:340,y:114,class:"node-t","text-anchor":"middle"}),"继电器 K1 + 电磁阀线圈"));
+    svg.appendChild(el("rect",{x:300,y:156,width:60,height:14,rx:2,class:"coil"}));
+    svg.appendChild(el("text",{x:340,y:178,class:"node-d","text-anchor":"middle"}),"24V 自锁回路"));
+    svg.appendChild(poly([[340,178],[340,270]],{class:"wire"}));
+  }
+}
+
+const pickLists={
+  direct:[
+    ["气源","气动库：Compressed Air Source"],
+    ["双作用气缸 1A1","气动执行元件库：Double-Acting Cylinder"],
+    ["5/2 换向阀（人控）","阀库：5/2-way valve, manual actuation, spring return"],
+    ["人控按钮 3/2 NC","阀库：3/2-way valve, push-button, NC"],
+    ["管路","连接线：直接拖气源→阀→气缸"],
+    ["双压阀/梭阀（可选）","逻辑阀库：Twin-Pressure / Shuttle"],
+    ["快排阀（可选提速）","阀库：Quick-Exhaust Valve"],
+    ["延时阀（可选）","阀库：Time-Delay Valve"]
+  ],
+  indirect:[
+    ["气源","气动库：Compressed Air Source"],
+    ["双作用气缸 1A1","气动执行元件库：Double-Acting Cylinder"],
+    ["5/2 气控换向阀","阀库：5/2-way valve, double-pilot (spring return)"],
+    ["气控信号阀 S（3/2 NC 人控）","阀库：3/2-way, push-button, NC"],
+    ["气控信号阀 S′（3/2 NC 人控）","阀库：3/2-way, push-button, NC"],
+    ["双压阀/梭阀（可选）","逻辑阀库：Twin-Pressure / Shuttle"],
+    ["快排阀（可选提速）","阀库：Quick-Exhaust Valve"],
+    ["行程阀 1S1 / 1S2（可选到位检测）","传感器库：Roller-Lever / Pinch Valve"]
+  ],
+  elec:[
+    ["气源","气动库：Compressed Air Source"],
+    ["双作用气缸 1A1","气动执行元件库：Double-Acting Cylinder"],
+    ["5/2 电磁换向阀","阀库：5/2-way, solenoid-operated, spring return"],
+    ["继电器 K1","电气库：Relay, 24V"],
+    ["按钮 SB（NO 启动）","电气库：Push-Button, NO"],
+    ["自锁回路","电气库：Relay + 并联 NO 按钮 + NC 停止按钮"],
+    ["行程开关 1S1/1S2（可选）","电气传感器库：Limit-Switch / Inductive Proximity"],
+    ["快排阀（可选提速）","阀库：Quick-Exhaust Valve"]
+  ]
+};
+const compareRows={
+  direct:[["换向阀驱动","人力直接操纵"],["适用场合","小流量 / 小通径"],["可扩展性","差，信号单一"],["记忆功能","无，松手即复位"]],
+  indirect:[["换向阀驱动","气压放大（先导）"],["阀芯结构","滑阀式，记忆功能"],["信号","气压信号，速度较慢"],["排气","配快排阀提速度"]],
+  elec:[["换向阀驱动","电磁线圈（电信号）"],["放大环节","继电器多触点，可扩展"],["信号","电信号，速度远高于气信号"],["自锁","K1 自锁实现循环"]]
+};
+const stepTexts={
+  direct:"① 打开 FluidSIM → 新建气动图（Pneumatic Circuit）<br>② 从库拖入：气源、双作用气缸 1A1、5/2 人控换向阀、3/2 NC 人控按钮<br>③ 用"连接线"依次：气源→阀 1 口；阀 2/4 口→气缸 A/B 腔<br>④ 点"▶ 运行"（F9）→ 点人控按钮 S，气缸活塞杆伸出<br>⑤ 再点 S′ 或松开，气缸缩回<br>⑥ 可选：加快排阀、双压阀/梭阀观察逻辑",
+  indirect:"① 新建气动图<br>② 拖入：气源、双作用气缸、5/2 气控换向阀、两个 3/2 NC 人控按钮 S 与 S′<br>③ 连线：气源→主阀 1 口；S→主阀 12 口（伸出）；S′→主阀 14 口（缩回）；主阀 2/4→气缸 A/B<br>④ F9 运行：点 S，主阀换向、气缸伸出；点 S′，主阀反向、气缸缩回<br>⑤ 观察：主阀具有"记忆功能"，信号消失后阀芯保持<br>⑥ 可选：加行程阀 1S1/1S2 做到位检测",
+  elec:"① 新建"气动+电气"混合图（Electropneumatic）<br>② 气动侧：气源、双作用气缸、5/2 电磁换向阀<br>③ 电气侧：继电器 K1（24V）、NO 启动按钮 SB、NC 停止按钮<br>④ 连线：气源→主阀；主阀 2/4→气缸 A/B；SB→K1 线圈；K1 触点→电磁阀线圈（加并联自锁）<br>⑤ F9 运行：按 SB，K1 得电自锁、电磁阀得电、气缸伸出；到位后 K1 失电、气缸缩回<br>⑥ 可选：加行程开关 1S1/1S2 做到位检测，实现自动循环"
+};
+
+function renderPick(){
+  const box=document.getElementById("pick"); box.innerHTML="";
+  pickLists[scheme].forEach((it,i)=>{
+    const li=document.createElement("li");
+    li.innerHTML='<span class="n">'+(i+1)+'</span><div><b>'+it[0]+'</b><span class="lib">'+it[1]+'</span></div>';
+    box.appendChild(li);
+  });
+}
+function renderCompare(){
+  document.getElementById("compare").innerHTML=compareRows[scheme].map(r=>'<div class="c-row"><span class="c-k">'+r[0]+'</span><span>'+r[1]+'</span></div>').join("");
+}
+function renderSteps(){ document.getElementById("steps").innerHTML=stepTexts[scheme]; }
+
+document.getElementById("tabs").addEventListener("click",e=>{
+  const t=e.target.closest(".scheme-tab"); if(!t)return;
+  scheme=t.dataset.s;
+  document.querySelectorAll(".scheme-tab").forEach(x=>x.classList.toggle("active",x.dataset.s===scheme));
+  build(); renderPick(); renderCompare(); renderSteps();
+});
+build(); renderPick(); renderCompare(); renderSteps();
+</script>
+</body>
+</html>
