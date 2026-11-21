@@ -166,7 +166,7 @@ function poly(p,ex){
 }
 function label(x,y,txt,cls){
   const e=el("text",{x:x,y:y,class:cls||"lbl","text-anchor":"middle"});
-  e.textContent=txt;return e;
+  e.textContent=txt;svg.appendChild(e);return e;
 }
 function fsImg(key,x,y,w,h){
   // draws a FluidSIM symbol bitmap centered at (x,y) with size w×h
