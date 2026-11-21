@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3.8 进气节流 vs 排气节流 · 速度控制对比</title>
+<style>
+:root{--bg:#0e1420;--panel:#161e2e;--panel2:#1c2740;--line:#2a3852;--ink:#e8edf6;--muted:#8a97ad;--accent:#4aa3ff;--accent2:#5fe0b8;--on:#33d6a6;--warn:#ffb454;--piston:#f2a83c}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+header{padding:16px 22px;border-bottom:1px solid var(--line)}
+header h1{font-size:19px;margin:0;font-weight:600}
+header .sub{color:var(--muted);font-size:13px;margin-top:4px}
+.wrap{padding:16px;max-width:1080px;margin:0 auto}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+.card h2{font-size:13px;color:var(--muted);margin:0 0 10px;font-weight:600;letter-spacing:.04em}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:820px){.two{grid-template-columns:1fr}}
+.panel{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px}
+.panel h3{font-size:14px;margin:0 0 6px}
+.panel .tag{font-size:11px;color:var(--muted)}
+.slider-row{display:flex;align-items:center;gap:10px;margin:10px 0}
+.slider-row label{font-size:12px;color:var(--muted);flex:0 0 70px}
+input[type=range]{flex:1;accent-color:var(--accent)}
+.val{font-size:13px;font-weight:700;color:var(--accent);flex:0 0 40px;text-align:right}
+.stage{display:flex;justify-content:center;overflow:auto;margin:8px 0}
+svg{max-width:100%;height:auto}
+.btn{cursor:pointer;border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--ink);padding:8px 14px;font-size:13px;font-family:inherit}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#06111f;font-weight:600}
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
+.metric{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px}
+.metric .k{font-size:11px;color:var(--muted)}
+.metric .v{font-size:16px;font-weight:700;margin-top:2px}
+.metric.good .v{color:var(--on)} .metric.warn .v{color:var(--warn)} .metric.bad .v{color:#ff5d73}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+.note{font-size:13px;line-height:1.65;color:var(--ink);background:var(--panel2);border-radius:10px;padding:12px}
+.note .k{color:var(--accent);font-weight:600}
+footer{padding:12px 22px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
+.lbl{font-size:11px;fill:var(--muted)} .lbl.b{font-weight:700;fill:var(--ink)}
+.air{fill:none;stroke:#243149;stroke-width:2.5}
+.air.on{stroke:var(--on);stroke-width:3}
+.flow{stroke:var(--on);stroke-width:3;opacity:0}
+.flow.show{opacity:1}
+.throttle{fill:#33405e;stroke:var(--line);stroke-width:1.5}
+.throttle.on{stroke:var(--warn)}
+.cyl-body{fill:#22304a;stroke:var(--line);stroke-width:1.5}
+.piston{fill:var(--piston);opacity:.95}
+.piston-cap{fill:#3a4d70;stroke:var(--ink);stroke-width:1}
+.node-t{font-size:12.5px;fill:var(--ink);font-weight:600}
+.node-d{font-size:10px;fill:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <h1>3.8 进气节流 vs 排气节流 · 速度控制参数化对比</h1>
+  <div class="sub">拖动节流阀开度，观察活塞速度、背压、前冲的差异，理解"为什么排气节流最常用"</div>
+</header>
+<div class="wrap">
+  <div class="two">
+    <div class="card panel">
+      <h3>进气节流 <span class="tag">— 节流阀装在进气侧</span></h3>
+      <div class="slider-row"><label>节流开度</label><input type="range" id="inTh" min="5" max="100" value="35"><span class="val" id="inVal">35%</span></div>
+      <div class="slider-row"><label>负载(0~1)</label><input type="range" id="inLoad" min="0" max="100" value="30"><span class="val" id="inLoadV">0.3</span></div>
+      <div class="stage"><svg id="inSvg" width="520" height="240" viewBox="0 0 520 240"></svg></div>
+      <button class="btn primary" id="inRun">▶ 运行伸出</button>
+      <div class="metrics" id="inMetrics"></div>
+    </div>
+    <div class="card panel">
+      <h3>排气节流 <span class="tag">— 节流阀装在排气侧</span></h3>
+      <div class="slider-row"><label>节流开度</label><input type="range" id="outTh" min="5" max="100" value="35"><span class="val" id="outVal">35%</span></div>
+      <div class="slider-row"><label>负载(0~1)</label><input type="range" id="outLoad" min="0" max="100" value="30"><span class="val" id="outLoadV">0.3</span></div>
+      <div class="stage"><svg id="outSvg" width="520" height="240" viewBox="0 0 520 240"></svg></div>
+      <button class="btn primary" id="outRun">▶ 运行伸出</button>
+      <div class="metrics" id="outMetrics"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>性能差异（书里文字讲得最绕，这里可视化）</h2>
+    <div class="note">
+      <span class="k">进气节流</span>：启动平稳，但带载启动可能推力不足；负载小幅波动 → 活塞速度明显变化（稳定性差）；负值负载可能"前冲"；活塞到位后压力缓升，便于压力顺序控制。<br>
+      <span class="k">排气节流</span>：启动有冲击；排气腔形成<b>背压</b> → 抑制负载波动、阻止前冲，<b>速度最稳</b>（最常用）；到位后排气腔压力缓降，不利于压力控制。
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--on)"></span>压缩空气</span>
+      <span><span class="dot" style="background:var(--warn)"></span>节流阀（开度可调）</span>
+      <span><span class="dot" style="background:var(--piston)"></span>活塞杆</span>
+    </div>
+  </div>
+</div>
+<footer>教学用法：先设相同开度+负载，分别"运行伸出"，对比活塞速度曲线与背压读数；再改负载，看进气节流速度抖动而排气节流稳定。</footer>
+<script>
+const NS="http://www.w3.org/2000/svg";
+function el(svg,t,a,c){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);(c||[]).forEach(x=>{if(typeof x==="string")e.textContent=x;else e.appendChild(x);});return e;}
+function poly(svg,pts,ex){return el(svg,"polyline",Object.assign({points:pts.map(p=>p.join(",")).join(" ")},ex||{}));}
+
+function makeCircuit(svgId, type){
+  const svg=document.getElementById(svgId);
+  svg.innerHTML="";
+  // 气源
+  svg.appendChild(el(svg,"rect",{x:16,y:100,width:70,height:50,rx:8,fill:"#1c2740",stroke:"#2a3852"}));
+  el(svg,"text",{x:51,y:122,class:"node-t","text-anchor":"middle"}, "气源");
+  el(svg,"text",{x:51,y:138,class:"node-d","text-anchor":"middle"}, "P");
+  // 节流阀（进气侧或排气侧）
+  const tx = type==="in" ? 150 : 400;
+  svg.appendChild(el(svg,"rect",{x:tx-14,y:112,width:28,height:36,rx:4,class:"throttle",id:svgId+"th"}));
+  el(svg,"text",{x:tx,y:162,class:"node-d","text-anchor":"middle"}, "节流阀");
+  // 气缸
+  svg.appendChild(el(svg,"text",{x:300,y:70,class:"node-d","text-anchor":"middle"}, "双作用气缸"));
+  svg.appendChild(el(svg,"rect",{x:230,y:82,width:150,height:50,rx:4,class:"cyl-body"}));
+  const rod=el(svg,"g",{id:svgId+"rod"});
+  rod.appendChild(el(svg,"rect",{x:300,y:100,width:56,height:14,rx:2,class:"piston"}));
+  rod.appendChild(el(svg,"rect",{x:296,y:92,width:12,height:30,rx:2,class:"piston-cap"}));
+  svg.appendChild(rod);
+  // 进气侧管（气源→节流阀→气缸A腔）
+  poly(svg,[[86,125],[tx-14,125]],{class:"air",id:svgId+"airIn"});
+  poly(svg,[[tx+14,125],[230,125]],{class:"air",id:svgId+"airIn2"});
+  // 排气侧管（气缸B腔→节流阀→排气）
+  poly(svg,[[380,125],[type==="out"?400+14:520,125]],{class:"air",id:svgId+"airOut"});
+  // 背压指示
+  el(svg,"text",{x:type==="out"?470:60,y:96,class:"lbl",id:svgId+"bp","text-anchor":"middle"}, "背压: —");
+  el(svg,"text",{x:type==="out"?470:60,y:110,class:"lbl",id:svgId+"bpv","text-anchor":"middle"}, "");
+}
+
+function runSim(type){
+  const svgId = type==="in" ? "inSvg" : "outSvg";
+  const th = +document.getElementById(type==="in"?"inTh":"outTh").value/100; // 0.05~1 开度
+  const load = +document.getElementById(type==="in"?"inLoad":"outLoad").value/100;
+  // 速度：开度越大越快；负载越大越慢（进气节流对负载更敏感）
+  let speed = th*(1 - (type==="in"? load*0.6 : load*0.25));
+  speed = Math.max(0.08, Math.min(1.2, speed));
+  // 背压：排气节流有背压；进气节流背压小
+  const backPressure = type==="out" ? 0.5 + th*0.4 : 0.1;
+  // 前冲风险：进气节流 + 轻载 → 前冲
+  const rush = type==="in" && load<0.35;
+  // 速度稳定性（对负载波动敏感度）
+  const stable = type==="out" ? "高" : "低";
+  const svg=document.getElementById(svgId);
+  const rod=document.getElementById(svgId+"rod");
+  const bpEl=document.getElementById(svgId+"bp");
+  // 动画活塞伸出
+  let t0=null; const dur= 1200/speed;
+  function frame(ts){
+    if(!t0)t0=ts; const p=Math.min(1,(ts-t0)/dur);
+    // 伸出：从 -56 到 0
+    const off = -56 + p*56;
+    rod.setAttribute("transform","translate("+off+",0)");
+    if(p<1) requestAnimationFrame(frame);
+    else {
+      // 到位
+    }
+  }
+  requestAnimationFrame(frame);
+  // 显示指标
+  const m=document.getElementById(type==="in"?"inMetrics":"outMetrics");
+  m.innerHTML = metric("活塞速度", (speed*100).toFixed(0)+"%", speed>0.5?"good":(speed>0.25?"warn":"bad"))
+            + metric("排气腔背压", (backPressure*100).toFixed(0)+" kPa", type==="out"?"good":"warn")
+            + metric("速度稳定性", stable, stable==="高"?"good":"warn")
+            + metric("前冲风险", rush?"有（轻载+进气）":"无", rush?"bad":"good");
+  bpEl.textContent = "背压: "+(backPressure*100).toFixed(0)+" kPa";
+  // 高亮节流阀
+  const thEl=document.getElementById(svgId+"th"); if(thEl) thEl.classList.add("on");
+  // 气路亮
+  document.querySelectorAll("["+svgId.slice(0,2)+"Svg] .air").forEach(a=>a.classList.add("on"));
+}
+function metric(k,v,cls){ return '<div class="metric '+(cls||"")+'"><div class="k">'+k+'</div><div class="v">'+v+'</div></div>'; }
+
+makeCircuit("inSvg","in"); makeCircuit("outSvg","out");
+document.getElementById("inRun").onclick=()=>runSim("in");
+document.getElementById("outRun").onclick=()=>runSim("out");
+// 滑杆实时更新
+["inTh","outTh"].forEach(id=>document.getElementById(id).oninput=e=>{
+  document.getElementById(id+"Val").textContent=e.target.value+"%";
+});
+["inLoad","outLoad"].forEach(id=>document.getElementById(id).oninput=e=>{
+  document.getElementById(id.replace("in","in").replace("out","out")+"V").textContent=(e.target.value/100).toFixed(1);
+});
+// 初始指标
+runSim("in"); runSim("out");
+</script>
+</body>
+</html>

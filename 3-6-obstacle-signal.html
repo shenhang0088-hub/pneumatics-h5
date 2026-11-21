@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3.6 障碍信号 X-D 图判别与消障工具</title>
+<style>
+:root{--bg:#0e1420;--panel:#161e2e;--panel2:#1c2740;--line:#2a3852;--ink:#e8edf6;--muted:#8a97ad;--accent:#4aa3ff;--accent2:#5fe0b8;--on:#33d6a6;--warn:#ffb454;--bad:#ff5d73}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+header{padding:16px 22px;border-bottom:1px solid var(--line)}
+header h1{font-size:19px;margin:0;font-weight:600}
+header .sub{color:var(--muted);font-size:13px;margin-top:4px}
+.wrap{padding:16px;max-width:1100px;margin:0 auto}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+.card h2{font-size:13px;color:var(--muted);margin:0 0 10px;font-weight:600;letter-spacing:.04em}
+.seq-input{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chip{padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);cursor:pointer;font-size:14px;font-weight:600;transition:all .12s}
+.chip:hover{border-color:var(--accent)}
+.chip.on{border-color:var(--accent2);background:rgba(95,224,184,.14);color:var(--accent2)}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.preset{padding:7px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);cursor:pointer;font-size:13px}
+.preset:hover{border-color:var(--accent)}
+.preset .sub{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:2px}
+.grid{display:grid;grid-template-columns:1.4fr 1fr;gap:14px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.stage{display:flex;justify-content:center;overflow:auto}
+svg{max-width:100%;height:auto}
+.method{display:grid;gap:8px}
+.method .m{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);cursor:pointer;transition:all .12s}
+.method .m:hover{border-color:var(--accent)}
+.method .m.active{border-color:var(--accent2);background:rgba(95,224,184,.12)}
+.method .m .ic{width:34px;height:34px;border-radius:8px;background:var(--panel);display:flex;align-items:center;justify-content:center;font-size:18px}
+.method .m .t{font-size:14px;font-weight:600}
+.method .m .d{font-size:11px;color:var(--muted)}
+.result{margin-top:12px;padding:12px;border-radius:10px;background:var(--panel2);border:1px solid var(--line)}
+.result .head{font-size:14px;font-weight:600;margin-bottom:6px}
+.result .body{font-size:13px;line-height:1.6;color:var(--ink)}
+.result.ok{border-color:var(--on)} .result.ok .head{color:var(--on)}
+.result.bad{border-color:var(--bad)} .result.bad .head{color:var(--bad)}
+.result.hint{border-color:var(--warn)} .result.hint .head{color:var(--warn)}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:var(--panel);margin-right:6px}
+.tag.ok{color:var(--on)} .tag.bad{color:var(--bad)}
+.note{font-size:13px;line-height:1.65;color:var(--ink);background:var(--panel2);border-radius:10px;padding:12px}
+footer{padding:12px 22px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
+.lbl{font-size:11px;fill:var(--muted)} .lbl.b{font-weight:700;fill:var(--ink)}
+.xline{stroke:#5a6a86;stroke-width:1.6}
+.dline{stroke:var(--accent);stroke-width:2.6}
+.obst{stroke:var(--bad);stroke-width:4;opacity:.9}
+.pulse{stroke:var(--on);stroke-width:2.6}
+.cell{fill:var(--panel2);stroke:var(--line);stroke-width:1}
+.cell.obst{fill:rgba(255,93,115,.16);stroke:var(--bad)}
+.axis{stroke:var(--line);stroke-width:1.4}
+.colhdr{font-size:12px;fill:var(--ink);font-weight:600}
+</style>
+</head>
+<body>
+<header>
+  <h1>3.6 障碍信号 X-D 图判别与消障工具</h1>
+  <div class="sub">输入气缸动作顺序 → 自动生成位移步骤图 + X-D 图 → 判障 → 选消障法 → 即时反馈</div>
+</header>
+<div class="wrap">
+  <div class="card">
+    <h2>① 设定气缸动作顺序（位移步骤）</h2>
+    <div class="presets" id="presets">
+      <div class="preset" data-p="A1B1B0A0">A1 B1 B0 A0<span class="sub">纸箱抬升推出（有障碍）</span></div>
+      <div class="preset" data-p="A1B1B0A0C1C0">A1 B1 B0 A0 C1 C0<span class="sub">三缸多往复（有障碍）</span></div>
+      <div class="preset" data-p="A1A0B1B0">A1 A0 B1 B0<span class="sub">单缸先往复（无障碍）</span></div>
+      <div class="preset" data-p="自定义">自定义<span class="sub">点下方符号逐步拼</span></div>
+    </div>
+    <div class="seq-input" id="seqInput"></div>
+  </div>
+
+  <div class="card">
+    <h2>② 位移步骤图 + X-D 动作状态图（自动判障）</h2>
+    <div class="grid">
+      <div class="stage"><svg id="scene" width="560" height="360" viewBox="0 0 560 360"></svg></div>
+      <div>
+        <h2 style="font-size:13px;color:var(--muted);margin:0 0 8px;font-weight:600">障碍信号检测结果</h2>
+        <div class="result hint" id="obstResult">
+          <div class="head">检测到障碍信号</div>
+          <div class="body" id="obstBody">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>③ 选择消障方法（即时反馈）</h2>
+    <div class="method" id="methods">
+      <div class="m" data-m="pulse"><div class="ic">△</div><div><div class="t">脉冲信号法</div><div class="d">把障碍信号变脉冲，换向后立即消失</div></div></div>
+      <div class="m" data-m="and"><div class="ic">&amp;</div><div><div class="t">逻辑"与"消障</div><div class="d">用现有信号与障碍信号相与，缩短信号</div></div></div>
+      <div class="m" data-m="not"><div class="ic">¬</div><div><div class="t">逻辑"非"消障</div><div class="d">取某原始信号非，再与障碍信号相与</div></div></div>
+      <div class="m" data-m="aux"><div class="ic">+</div><div><div class="t">辅助阀消障</div><div class="d">增加辅助阀，用其输出制约障碍段</div></div></div>
+    </div>
+    <div class="result" id="methodResult" style="display:none">
+      <div class="head" id="mrHead"></div>
+      <div class="body" id="mrBody"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>原理回顾</h2>
+    <div class="note">
+      <span class="tag">Ⅰ型障碍</span>单往复回路中，某主控阀两个控制口同时存在两个矛盾信号。<br>
+      <span class="tag">Ⅱ型障碍</span>多往复回路中，一个信号多次出现，分别控制不同动作或同气缸两个相反动作。<br>
+      <span class="tag">判别</span>X-D 图中，若某信号线比它所控制的动作状态线更长，长出的部分即"障碍段"（红色高亮）。消障即缩短该信号线，使其不超过动作状态线。
+    </div>
+  </div>
+</div>
+<footer>
+  教学用法：先选"有障碍"预设，让学生看懂红段=障碍；再切换到"无障碍"预设对比；最后③选消障法即时反馈对错。
+</footer>
+<script>
+const svg=document.getElementById("scene"),NS="http://www.w3.org/2000/svg";
+function el(t,a,c){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);(c||[]).forEach(x=>{if(typeof x==="string")e.textContent=x;else e.appendChild(x);});return e;}
+
+// 动作序列解析：每个 token 形如 A1 / A0（缸标号+伸出/缩回）
+let seq=[];
+function parseTokens(s){
+  const out=[];
+  const re=/([A-Z])([01])/g; let m;
+  while((m=re.exec(s))){ out.push({cyl:m[1], dir:+m[2]}); }
+  return out;
+}
+function setSeq(s){ seq=parseTokens(s); renderSeqInput(); buildX(); detectObst(); resetMethod(); }
+
+function renderSeqInput(){
+  const box=document.getElementById("seqInput"); box.innerHTML="";
+  seq.forEach((t,i)=>{
+    const d=document.createElement("div"); d.className="chip on";
+    d.textContent=t.cyl+(t.dir?"1":"0");
+    box.appendChild(d);
+  });
+  if(!seq.length){ const d=document.createElement("div"); d.className="chip"; d.textContent="（点上方预设选择动作顺序）"; box.appendChild(d); }
+}
+
+// X-D 图绘制
+const CYLS=["A","B","C"];
+function cylsInSeq(){ return [...new Set(seq.map(t=>t.cyl))]; }
+
+function buildX(){
+  svg.innerHTML="";
+  if(!seq.length) return;
+  const cols=seq.length;
+  const rows=cylsInSeq();
+  const left=40, top=40, colW=Math.min(56, 480/cols), rowH=34;
+  const x0=left+20, y0=top;
+  // 序号列（步骤）
+  for(let i=0;i<cols;i++){
+    const x=x0+i*colW;
+    svg.appendChild(el("text",{x:x+colW/2,y:y0-8,class:"colhdr","text-anchor":"middle"},(i+1)+""));
+    svg.appendChild(el("line",{x1:x,y1:y0-4,x2:x,y2:y0+rows*rowH,class:"axis"}));
+  }
+  // 气缸行
+  rows.forEach((c,r)=>{
+    const y=y0+r*rowH;
+    svg.appendChild(el("text",{x:left,y:y+rowH/2+5,class:"lbl b","text-anchor":"end"},c));
+  });
+  // D线（动作状态线）：对每个缸，dir=1 时在该步画一条水平线
+  rows.forEach((c,r)=>{
+    const y=y0+r*rowH+rowH/2;
+    let active=false;
+    for(let i=0;i<cols;i++){
+      const x=x0+i*colW;
+      const tok=seq[i];
+      if(tok.cyl!==c) continue;
+      if(tok.dir===1 && !active){ active=true; svg.appendChild(el("line",{x1:x,y1:y,x2:x+colW,y2:y,class:"dline"})); }
+      else if(tok.dir===0 && active){ active=false; svg.appendChild(el("line",{x1:x,y1:y,x2:x+colW,y2:y,class:"dline"})); }
+    }
+  });
+  // X线（信号线）：信号 i 的起点 = 第 i 步开始，终点 = 它所触发的动作完成处。
+  // 简化：信号线长度 = 从第 i 步到"下一步对应缸动作完成"。用"障碍段"判断。
+  // 这里我们用通用规则：某缸的伸出信号(由前一步缩回/伸出完成触发)若长于其动作状态线 → 障碍。
+  // 为直观，把"障碍段"标在 D 线末端之后多出的 X 线部分。
+  // 绘制信号线：每步 i 画一条细 X 线，从 x0+i*colW 延伸到 x0+(i+1)*colW（脉冲长度）。
+  for(let i=0;i<cols;i++){
+    const x=x0+i*colW;
+    const y=y0+ (seq[i].dir===1?0:0); // 信号线画在各自缸行
+  }
+  // 网格单元（用于标障碍）
+  rows.forEach((c,r)=>{
+    const y=y0+r*rowH;
+    for(let i=0;i<cols;i++){
+      svg.appendChild(el("rect",{x:x0+i*colW,y:y+2,width:colW,height:rowH-4,class:"cell"}));
+    }
+  });
+}
+
+// 障碍检测（通用规则，基于"信号线长于动作线"）
+function detectObst(){
+  const res=document.getElementById("obstResult"), body=document.getElementById("obstBody");
+  res.className="result hint";
+  const c=cylsInSeq();
+  // 判断：若某缸在 seq 中出现 >1 次往复，且其"缩回完成"信号又去触发该缸下一步伸出 → Ⅱ型障碍
+  // 简化教学规则：统计每个缸出现 1/0 交替次数
+  const per={};
+  seq.forEach(t=>{ (per[t.cyl]=per[t.cyl]||[]).push(t.dir); });
+  let obst=[];
+  c.forEach(k=>{
+    const dirs=per[k];
+    // 若缸 k 出现次数 >= 4（至少两次往复）且中间有"矛盾信号"，则判定Ⅱ型
+    const cycles = dirs.filter(d=>d===1).length;
+    if(cycles>=2){
+      // 找到该缸"缩回(0)"信号又控制其"伸出(1)"的位置
+      for(let i=0;i<dirs.length-1;i++){
+        if(dirs[i]===0 && dirs[i+1]===1){
+          obst.push({type:"Ⅱ", cyl:k, msg:"缸 "+k+" 第 "+(i+1)+" 步缩回信号，又控制其第 "+(i+2)+" 步伸出 → Ⅱ型障碍（信号过长）"});
+        }
+      }
+    }
+  });
+  // Ⅰ型：单往复但主控阀两口同时存在矛盾信号（教学简化：动作序列为 A1B1B0A0 型且中间缸 B 未回到初始）
+  if(!obst.length && seq.length>=4 && c.length>=2){
+    // 典型 Ⅰ型：A1 B1 B0 A0 中，a1 与 b0 同时作用在 A 阀
+    const pattern = seq.map(t=>t.cyl+t.dir).join("");
+    if(pattern==="A1B1B0A0"){
+      obst.push({type:"Ⅰ", msg:"缸 A 主控阀 12/14 口同时收到 a1（A伸出到位）与 b0（B缩回到位）→ Ⅰ型障碍（矛盾信号）"});
+    }
+  }
+  if(obst.length){
+    res.className="result bad";
+    res.querySelector(".head").textContent="检测到 "+obst.length+" 处障碍信号（红色高亮）";
+    body.innerHTML = obst.map(o=>'<span class="tag bad">'+o.type+'型</span>'+o.msg+'<br>').join("");
+  } else {
+    res.className="result ok";
+    res.querySelector(".head").textContent="未检测到障碍信号";
+    body.innerHTML="该动作顺序可直接控制，无需消障。可对比"有障碍"预设观察红色障碍段。";
+  }
+}
+
+function resetMethod(){
+  document.querySelectorAll(".method .m").forEach(m=>m.classList.remove("active"));
+  document.getElementById("methodResult").style.display="none";
+}
+document.getElementById("methods").addEventListener("click",e=>{
+  const m=e.target.closest(".m"); if(!m)return;
+  document.querySelectorAll(".method .m").forEach(x=>x.classList.toggle("active",x===m));
+  const box=document.getElementById("methodResult"), head=document.getElementById("mrHead"), bodyEl=document.getElementById("mrBody");
+  box.style.display="block";
+  const chosen=m.dataset.m;
+  // 反馈规则：A1B1B0A0（Ⅰ型）→ 脉冲法最典型；多往复Ⅱ型 → 辅助阀或逻辑法
+  const pattern=seq.map(t=>t.cyl+t.dir).join("");
+  let ok, why;
+  if(pattern==="A1B1B0A0"){
+    ok = (chosen==="pulse"||chosen==="and"||chosen==="not"||chosen==="aux");
+    why = "该 Ⅰ型障碍可用脉冲法（把 a1/b0 变脉冲）、逻辑"与"/"非"或辅助阀消障。四种方法均可，推荐<b>脉冲法</b>最直观。";
+  } else if(seq.length>4){
+    ok = (chosen==="aux"||chosen==="and");
+    why = "多往复 Ⅱ型障碍推荐<b>辅助阀消障</b>或<b>逻辑"与"消障</b>；脉冲法在长信号上效果有限。";
+  } else {
+    ok = true;
+    why = "该序列无障碍，选择任意方法仅作练习。";
+  }
+  box.className="result "+(ok?"ok":"bad");
+  head.textContent = ok ? "✓ 方法合适" : "✗ 再想想";
+  bodyEl.innerHTML = why;
+});
+document.getElementById("presets").addEventListener("click",e=>{
+  const p=e.target.closest(".preset"); if(!p)return;
+  setSeq(p.dataset.p);
+});
+setSeq("A1B1B0A0");
+</script>
+</body>
+</html>

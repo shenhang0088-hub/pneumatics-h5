@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第3章 气控回路 · 交互仿真导航</title>
+<style>
+:root{--bg:#0e1420;--panel:#161e2e;--panel2:#1c2740;--line:#2a3852;--ink:#e8edf6;--muted:#8a97ad;--accent:#4aa3ff;--accent2:#5fe0b8}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+header{padding:18px 24px;border-bottom:1px solid var(--line)}
+header h1{font-size:20px;margin:0;font-weight:600}
+header .sub{color:var(--muted);font-size:13px;margin-top:4px}
+.wrap{padding:18px 24px;max-width:900px;margin:0 auto}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+.card h2{font-size:13px;color:var(--muted);margin:0 0 10px;font-weight:600;letter-spacing:.04em}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.tile{display:block;text-decoration:none;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px;transition:all .15s}
+.tile:hover{border-color:var(--accent);transform:translateY(-2px)}
+.tile .t{font-size:15px;font-weight:700;margin-bottom:6px}
+.tile .d{font-size:12px;color:var(--muted);line-height:1.5}
+.tile .tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:999px;background:var(--panel);color:var(--accent2);margin-bottom:8px}
+footer{padding:12px 24px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>液压与气压传动 · 第3章 气控回路 交互仿真</h1>
+  <div class="sub">线上精品课 · 学习通章节页嵌入用 · 点卡片进入对应仿真</div>
+</header>
+<div class="wrap">
+  <div class="card">
+    <h2>按节浏览（5 个交互仿真）</h2>
+    <div class="grid">
+      <a class="tile" href="index.html"><span class="tag">3.1</span><div class="t">工件转运装置</div><div class="d">三种控制方案（直接/间接/电气）切换，气流动画 + 活塞伸缩 + 到位信号传递。</div></a>
+      <a class="tile" href="3-2-hand-safety.html"><span class="tag">3.2</span><div class="t">双手操作安全回路</div><div class="d">双压阀 = 逻辑"与"，必须双手同时按下才动作，工业安全典型。</div></a>
+      <a class="tile" href="3-6-obstacle-signal.html"><span class="tag">3.6</span><div class="t">障碍信号 X-D 图工具</div><div class="d">输入动作顺序 → 自动判障 → 选消障法即时反馈（全章难点）。</div></a>
+      <a class="tile" href="3-8-throttle-compare.html"><span class="tag">3.8</span><div class="t">进气 vs 排气节流</div><div class="d">拖节流开度 + 负载，对比速度/背压/前冲差异（参数化对比）。</div></a>
+      <a class="tile" href="fluidsim-guide.html"><span class="tag">装配</span><div class="t">FluidSIM 装配指导</div><div class="d">三种回路"从哪个库拖哪个元件"精确清单，照着装 5 分钟。</div></a>
+    </div>
+  </div>
+</div>
+<footer>液压与气压传动 · 线上精品课程 · 第3章 气压传动的基本控制回路</footer>
+</body>
+</html>

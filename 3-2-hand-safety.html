@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3.2 双手操作安全回路 · 逻辑"与"（双压阀）</title>
+<style>
+:root{--bg:#0e1420;--panel:#161e2e;--panel2:#1c2740;--line:#2a3852;--ink:#e8edf6;--muted:#8a97ad;--accent:#4aa3ff;--accent2:#5fe0b8;--on:#33d6a6;--warn:#ffb454;--piston:#f2a83c}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+header{padding:16px 22px;border-bottom:1px solid var(--line)}
+header h1{font-size:19px;margin:0;font-weight:600}
+header .sub{color:var(--muted);font-size:13px;margin-top:4px}
+.wrap{padding:16px;max-width:1000px;margin:0 auto}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+.card h2{font-size:13px;color:var(--muted);margin:0 0 10px;font-weight:600;letter-spacing:.04em}
+.stage{display:flex;justify-content:center;overflow:auto}
+svg{max-width:100%;height:auto}
+.hand{cursor:pointer;user-select:none}
+.hand .btn{fill:var(--panel2);stroke:var(--line);stroke-width:1.5}
+.hand.on .btn{fill:rgba(74,163,255,.22);stroke:var(--accent)}
+.hand .lbl{font-size:13px;fill:var(--ink);font-weight:600}
+.air{fill:none;stroke:#243149;stroke-width:2.5}
+.air.on{stroke:var(--on);stroke-width:3}
+.flow{stroke:var(--on);stroke-width:3;opacity:0}
+.flow.show{opacity:1}
+.cyl-body{fill:#22304a;stroke:var(--line);stroke-width:1.5}
+.piston{fill:var(--piston);opacity:.95}
+.piston-cap{fill:#3a4d70;stroke:var(--ink);stroke-width:1}
+.node-t{font-size:12.5px;fill:var(--ink);font-weight:600}
+.node-d{font-size:10px;fill:var(--muted)}
+.status{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.badge{font-size:12px;padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--muted)}
+.badge.on{color:var(--on);border-color:var(--on)}
+.log{height:110px;overflow:auto;font-size:12px;line-height:1.6;font-family:Consolas,monospace;background:var(--panel2);border-radius:8px;padding:8px}
+.log .row{display:flex;gap:8px}
+.log .ts{color:var(--muted);flex:0 0 56px}
+.log .ev{color:var(--ink)} .log .ev.on{color:var(--on)} .log .ev.sys{color:var(--warn)}
+.tip{font-size:13px;line-height:1.65;color:var(--ink);background:var(--panel2);border-radius:10px;padding:12px}
+.tip .k{color:var(--accent);font-weight:600}
+footer{padding:12px 22px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<header>
+  <h1>3.2 板材成型 · 双手操作安全回路（逻辑"与"）</h1>
+  <div class="sub">双压阀 = 逻辑"与"：两个按钮<b>必须同时</b>按下，气缸才伸出，保证双手离开危险区</div>
+</header>
+<div class="wrap">
+  <div class="card">
+    <h2>回路（双压阀实现逻辑"与"）</h2>
+    <div class="stage"><svg id="scene" width="620" height="300" viewBox="0 0 620 300"></svg></div>
+    <div class="status" id="status"></div>
+  </div>
+  <div class="card">
+    <h2>操作提示</h2>
+    <div class="tip">
+      <span class="k">安全逻辑</span>：成型设备要求"双手同时按下 SB1 和 SB2 才动作"，防止单手误触导致压手。双压阀只有两个输入口同时有气才输出，等价于逻辑 AND。<br>
+      <span class="k">试一下</span>：只按 SB1 → 气缸不动；只按 SB2 → 气缸不动；<b>同时按住 SB1+SB2</b> → 气缸伸出；松开任意一个 → 气缸缩回。
+    </div>
+  </div>
+  <div class="card">
+    <h2>事件日志</h2>
+    <div class="log" id="log"></div>
+  </div>
+</div>
+<footer>教学用法：先让学生"只按一个"观察不动作（理解"与"逻辑），再"同时按"观察动作，最后松开任意一个观察立即复位。</footer>
+<script>
+const NS="http://www.w3.org/2000/svg";
+function el(t,a,c){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);(c||[]).forEach(x=>{if(typeof x==="string")e.textContent=x;else e.appendChild(x);});return e;}
+function poly(pts,ex){return el("polyline",Object.assign({points:pts.map(p=>p.join(",")).join(" ")},ex||{}));}
+
+const svg=document.getElementById("scene");
+let s1=false,s2=false,extending=false,extProg=0,raf=null;
+
+function build(){
+  svg.innerHTML="";
+  // 双压阀（与门）
+  svg.appendChild(el("rect",{x:270,y:60,width:80,height:60,rx:8,fill:"#1c2740",stroke:"#2a3852"}));
+  el(svg,"text",{x:310,y:86,class:"node-t","text-anchor":"middle"}, "双压阀");
+  el(svg,"text",{x:310,y:104,class:"node-d","text-anchor":"middle"}, "逻辑 与 AND");
+  // 两个输入口
+  el(svg,"text",{x:262,y:78,class:"node-d","text-anchor":"end"}, "SB1");
+  el(svg,"text",{x:262,y:110,class:"node-d","text-anchor":"end"}, "SB2");
+  // 手 SB1
+  const h1=el("g",{class:"hand",id:"h1"});
+  h1.appendChild(el("circle",{cx:180,cy:72,r:20,class:"btn"}));
+  el(h1,"text",{x:180,y:76,class:"lbl","text-anchor":"middle"}, "SB1");
+  el(h1,"text",{x:180,y:104,class:"node-d","text-anchor":"middle"}, "手 1");
+  svg.appendChild(h1);
+  const h2=el("g",{class:"hand",id:"h2"});
+  h2.appendChild(el("circle",{cx:180,cy:110,r:20,class:"btn"}));
+  el(h2,"text",{x:180,y:114,class:"lbl","text-anchor":"middle"}, "SB2");
+  el(h2,"text",{x:180,y:142,class:"node-d","text-anchor":"middle"}, "手 2");
+  svg.appendChild(h2);
+  // 双压阀 → 5/2 阀
+  svg.appendChild(poly([[350,90],[430,150]],{class:"air",id:"a1"}));
+  // 5/2 阀
+  svg.appendChild(el("rect",{x:430,y:120,width:60,height:60,rx:6,fill:"#1c2740",stroke:"#2a3852"}));
+  el(svg,"text",{x:460,y:148,class:"node-t","text-anchor":"middle"}, "5/2 阀");
+  el(svg,"text",{x:460,y:166,class:"node-d","text-anchor":"middle"}, "气控");
+  // 气缸
+  svg.appendChild(el("text",{x:540,y:110,class:"node-d","text-anchor":"middle"}, "双作用气缸"));
+  svg.appendChild(el("rect",{x:490,y:120,width:100,height:50,rx:4,class:"cyl-body"}));
+  const rod=el("g",{id:"rod"});
+  rod.appendChild(el("svg","rect",{x:540,y:136,width:44,height:14,rx:2,class:"piston"}));
+  rod.appendChild(el("rect",{x:536,y:128,width:10,height:26,rx:2,class:"piston-cap"}));
+  svg.appendChild(rod);
+  svg.appendChild(poly([[490,150],[536,150]],{class:"air",id:"a2"}));
+  // 手 → 双压阀 输入
+  svg.appendChild(poly([[200,72],[270,80]],{class:"air",id:"i1"}));
+  svg.appendChild(poly([[200,110],[270,100]],{class:"air",id:"i2"}));
+}
+
+function renderStatus(){
+  const s=document.getElementById("status"); s.innerHTML="";
+  const andOut = s1&&s2;
+  s.innerHTML =
+    badge("SB1 按下", s1) + badge("SB2 按下", s2) +
+    badge("与门输出", andOut) + badge("气缸", extending?"伸出中":(extProg>=1?"伸出到位":"缩回")) ;
+}
+function badge(t,on){ return '<div class="badge'+(on?' on':'')+'">'+t+(on?'：是':'：否')+'</div>'; }
+
+function log(msg,cls){
+  const box=document.getElementById("log");
+  const row=document.createElement("div");row.className="row";
+  const ts=document.createElement("span");ts.className="ts";ts.textContent=new Date().toLocaleTimeString("zh-CN",{hour12:false});
+  const ev=document.createElement("span");ev.className="ev "+(cls||"");ev.textContent=msg;
+  row.appendChild(ts);row.appendChild(ev);box.appendChild(row);box.scrollTop=box.scrollHeight;
+}
+
+function paint(){
+  document.getElementById("h1").classList.toggle("on",s1);
+  document.getElementById("h2").classList.toggle("on",s2);
+  const i1=document.getElementById("i1"),i2=document.getElementById("i2"),a1=document.getElementById("a1"),a2=document.getElementById("a2");
+  if(i1)i1.classList.toggle("on",s1);
+  if(i2)i2.classList.toggle("on",s2);
+  const andOut=s1&&s2;
+  if(a1)a1.classList.toggle("on",andOut);
+  if(a2)a2.classList.toggle("on",extending||extProg>0);
+  // 活塞
+  const rod=document.getElementById("rod");
+  if(rod){
+    const off = extending||extProg>0 ? -44+ (Math.min(1,extProg))*44 : -44;
+    rod.setAttribute("transform","translate("+off+",0)");
+  }
+  renderStatus();
+}
+
+function tick(){
+  const andOut=s1&&s2;
+  if(andOut && !extending){ extending=true; }
+  if(extending){
+    extProg=Math.min(1,extProg+0.04);
+    if(extProg>=1){ extending=false; log("气缸伸出到位","on"); }
+  }
+  if(!andOut && extProg>0){
+    extProg=Math.max(0,extProg-0.06);
+    if(extProg<=0){ log("松开按钮，气缸缩回","sys"); }
+  }
+  paint();
+  requestAnimationFrame(tick);
+}
+
+document.getElementById("h1").onclick=()=>{ s1=!s1; log("SB1 "+(s1?"按下":"松开"),s1?"on":"sys"); };
+document.getElementById("h2").onclick=()=>{ s2=!s2; log("SB2 "+(s2?"按下":"松开"),s2?"on":"sys"); };
+
+build();
+// 初始提示
+log("提示：只按一个按钮，气缸不动（与逻辑）","sys");
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
