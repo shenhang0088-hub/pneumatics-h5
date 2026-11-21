@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3.2 板材成型装置 · 双手安全回路交互仿真</title>
+<style>
+:root{
+  --bg:#0e1420; --panel:#161e2e; --panel2:#1c2740; --line:#2a3852;
+  --ink:#e8edf6; --muted:#8a97ad; --accent:#4aa3ff; --accent2:#5fe0b8;
+  --on:#33d6a6; --warn:#ffb454; --piston:#f2a83c; --bad:#ff5d73;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+header{padding:18px 22px;border-bottom:1px solid var(--line)}
+header h1{font-size:20px;margin:0;font-weight:600}
+header .sub{color:var(--muted);font-size:13px;margin-top:4px}
+.wrap{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;padding:16px}
+@media(max-width:1040px){.wrap{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+.card h2{font-size:13px;color:var(--muted);margin:0 0 10px;font-weight:600;letter-spacing:.04em}
+.scheme-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.scheme-tab{flex:1;min-width:150px;cursor:pointer;user-select:none;border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:var(--panel2);transition:border-color .15s,background .15s}
+.scheme-tab .t{font-size:14px;font-weight:600}
+.scheme-tab .d{font-size:12px;color:var(--muted);margin-top:3px}
+.scheme-tab.active{border-color:var(--accent);background:rgba(74,163,255,.12)}
+.scheme-tab.active .t{color:var(--accent)}
+.stage{display:flex;justify-content:center;overflow:auto}
+svg{max-width:100%;height:auto}
+.ctrl-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.hint{font-size:12px;color:var(--muted);flex:1;min-width:170px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+.andbox{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+.andcell{flex:1;min-width:120px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:10px;text-align:center}
+.andcell .s{font-size:15px;font-weight:700}
+.andcell .k{font-size:11px;color:var(--muted);margin-top:3px}
+.andcell.on{border-color:var(--on)} .andcell.on .s{color:var(--on)}
+.outcell.on{border-color:var(--accent2)} .outcell.on .s{color:var(--accent2)}
+.note{font-size:13px;line-height:1.65;color:var(--ink);background:var(--panel2);border-radius:10px;padding:12px}
+.note .k{color:var(--accent);font-weight:600}
+.log{height:130px;overflow:auto;font-size:12px;line-height:1.7;font-family:Consolas,monospace;background:var(--panel2);border-radius:8px;padding:8px}
+.log .row{display:flex;gap:8px}
+.log .ts{color:var(--muted);flex:0 0 56px}
+.log .ev{color:var(--ink)} .log .ev.on{color:var(--on)} .log .ev.sig{color:var(--accent2)} .log .ev.sys{color:var(--warn)} .log .ev.bad{color:var(--bad)}
+footer{padding:14px 22px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
+
+.lbl{font-size:11px;fill:var(--muted)}
+.lbl.b{font-weight:700;fill:var(--ink)}
+.node-box{fill:var(--panel2);stroke:var(--line);stroke-width:1.5}
+.node-box.on{stroke:var(--accent);fill:rgba(74,163,255,.16)}
+.node-box.and{stroke:var(--accent2);fill:rgba(95,224,184,.14)}
+.node-t{font-size:12.5px;fill:var(--ink);font-weight:600}
+.node-d{font-size:10px;fill:var(--muted)}
+.pos1{fill:#22304a;stroke:#5a6a86;stroke-width:1.5}
+.pos1.on{stroke:var(--on)}
+.air{fill:none;stroke:#243149;stroke-width:3}
+.air.on{stroke:var(--on);stroke-width:3.5}
+.cyl-body{fill:#22304a;stroke:var(--line);stroke-width:1.5}
+.piston{fill:var(--piston);opacity:.95}
+.piston-cap{fill:#3a4d70;stroke:var(--ink);stroke-width:1}
+.btnface{fill:var(--panel2);stroke:var(--line);stroke-width:1.5;cursor:pointer}
+.btnface.on{fill:rgba(74,163,255,.24);stroke:var(--accent)}
+.btnface.warn{stroke:var(--warn);fill:rgba(255,180,84,.16)}
+.solenoid{fill:var(--panel2);stroke:var(--line);stroke-width:1.5}
+.solenoid.on{stroke:var(--warn);fill:rgba(255,180,84,.15)}
+.relay{fill:var(--panel2);stroke:var(--line);stroke-width:1.5}
+.relay.on{stroke:var(--warn)}
+.title-t{font-size:14px;fill:var(--ink);font-weight:700}
+</style>
+</head>
+<body>
+<header>
+  <h1>3.2 板材成型装置 · 双手安全回路交互仿真</h1>
+  <div class="sub">双压阀 = 逻辑"与"：SB1 与 SB2 <b>必须同时</b>按下，气缸才伸出；SB3 单独复位。切换三种控制方案观察因果链。</div>
+</header>
+
+<div class="wrap">
+  <div class="card">
+    <h2>控制方案切换</h2>
+    <div class="scheme-tabs" id="tabs">
+      <div class="scheme-tab active" data-s="direct"><div class="t">① 直接控制（人控）</div><div class="d">两个手控按钮 + 双压阀，最简</div></div>
+      <div class="scheme-tab" data-s="indirect"><div class="t">② 间接控制（气控 + 双压阀）</div><div class="d">气控主阀放大，记忆功能</div></div>
+      <div class="scheme-tab" data-s="elec"><div class="t">③ 电气控制（继电器"与"）</div><div class="d">按钮串联 = 逻辑与，可扩展</div></div>
+    </div>
+
+    <div class="stage"><svg id="scene" width="720" height="520" viewBox="0 0 720 520"></svg></div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--on)"></span>压缩空气</span>
+      <span><span class="dot" style="background:var(--accent2)"></span>控制 / 到位信号</span>
+      <span><span class="dot" style="background:var(--warn)"></span>电气得电</span>
+      <span><span class="dot" style="background:var(--piston)"></span>气缸活塞杆</span>
+    </div>
+  </div>
+
+  <div>
+    <div class="card" style="margin-bottom:16px">
+      <h2>逻辑"与"状态（双压阀）</h2>
+      <div class="andbox">
+        <div class="andcell" id="c1"><div class="s" id="s1v">关</div><div class="k">SB1（手1）</div></div>
+        <div class="andcell" id="c2"><div class="s" id="s2v">关</div><div class="k">SB2（手2）</div></div>
+        <div class="andcell outcell" id="c3"><div class="s" id="andv">无</div><div class="k">与门输出</div></div>
+        <div class="andcell" id="c4"><div class="s" id="s3v">关</div><div class="k">SB3（复位）</div></div>
+      </div>
+      <div class="note">
+        <span class="k">安全逻辑</span>：只有 SB1 与 SB2 <b>同时</b>按下，双压阀才有输出（逻辑 AND），气缸伸出，保证双手离开危险区。<br>
+        <span class="k">复位</span>：按 SB3，气缸缩回，设备恢复初始状态。
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h2>事件日志</h2>
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+</div>
+
+<footer>教学用法：先只按 SB1 观察"不动作"（理解与逻辑），再 SB1+SB2 同时按观察动作，最后 SB3 复位。三种方案动作要求一致，差异在换向阀驱动方式。</footer>
+
+<script>
+"use strict";
+const svg=document.getElementById("scene"),NS="http://www.w3.org/2000/svg";
+let scheme="direct";
+let sb1=false,sb2=false,sb3=false;
+let extProg=0, playing=false, raf=null;
+const SPEED=1.4;
+let last=0;
+
+function el(tag,attrs,children){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);(children||[]).forEach(c=>{if(typeof c==="string")e.textContent=c;else e.appendChild(c);});return e;}
+function poly(pts,extra){return el("polyline",Object.assign({points:pts.map(p=>p.join(",")).join(" ")},extra||{}));}
+
+function build(){
+  svg.innerHTML="";
+  // 气源
+  svg.appendChild(el("rect",{x:40,y:250,width:110,height:64,rx:10,class:"node-box"}));
+  svg.appendChild(el("text",{x:95,y:276,class:"node-t","text-anchor":"middle"}),"气源");
+  svg.appendChild(el("text",{x:95,y:294,class:"node-d","text-anchor":"middle"}),"压缩空气");
+  // 双压阀（与门）
+  svg.appendChild(el("rect",{x:230,y:250,width:80,height:64,rx:8,class:"node-box and"}));
+  svg.appendChild(el("text",{x:270,y:278,class:"node-t","text-anchor":"middle"}),"双压阀");
+  svg.appendChild(el("text",{x:270,y:296,class:"node-d","text-anchor":"middle"}),"逻辑 与");
+  // SB1 / SB2 按钮（手控）→ 双压阀两输入
+  if(scheme!=="elec"){
+    svg.appendChild(el("circle",{cx:180,cy:220,r:18,class:"btnface",id:"b1"}));
+    svg.appendChild(el("text",{x:180,y:224,class:"node-t","text-anchor":"middle"}),"SB1");
+    svg.appendChild(poly([[196,232],[245,262]],{class:"air",id:"i1"}));
+    svg.appendChild(el("circle",{cx:180,cy:320,r:18,class:"btnface",id:"b2"}));
+    svg.appendChild(el("text",{x:180,y:324,class:"node-t","text-anchor":"middle"}),"SB2");
+    svg.appendChild(poly([[196,308],[245,298]],{class:"air",id:"i2"}));
+  }
+  // SB3 复位按钮
+  svg.appendChild(el("circle",{cx:430,cy:440,r:18,class:"btnface",id:"b3"}));
+  svg.appendChild(el("text",{x:430,y:444,class:"node-t","text-anchor":"middle"}),"SB3");
+  svg.appendChild(el("text",{x:430,y:470,class:"node-d","text-anchor":"middle"}),"复位（缩回）");
+  // 双压阀 → 主阀（5/2）
+  svg.appendChild(el("rect",{x:430,y:250,width:64,height:64,rx:6,class:"node-box",id:"mainvalve"}));
+  svg.appendChild(el("rect",{x:436,y:256,width:26,height:52,rx:3,class:"pos1",id:"pos1"}));
+  const vlab = scheme==="direct"?"人控 5/2":scheme==="indirect"?"气控 5/2":"电磁 5/2";
+  svg.appendChild(el("text",{x:462,y:238,class:"node-d","text-anchor":"middle"}),vlab);
+  // 电气：继电器 + 电磁阀线圈
+  if(scheme==="elec"){
+    svg.appendChild(el("rect",{x:120,y:120,width:90,height:56,rx:8,class:"relay",id:"relayBox"}));
+    svg.appendChild(el("text",{x:165,y:146,class:"node-t","text-anchor":"middle"}),"继电器 K1");
+    svg.appendChild(el("text",{x:165,y:162,class:"node-d","text-anchor":"middle"}),"触点自锁");
+    svg.appendChild(el("rect",{x:436,y:120,width:52,height:56,rx:8,class:"solenoid",id:"solBox"}));
+    svg.appendChild(el("text",{x:462,y:146,class:"node-t","text-anchor":"middle"}),"电磁阀");
+    svg.appendChild(el("text",{x:462,y:162,class:"node-d","text-anchor":"middle"}),"线圈");
+    // 两个按钮（电气）
+    svg.appendChild(el("circle",{cx:90,cy:148,r:18,class:"btnface",id:"b1"}));
+    svg.appendChild(el("text",{x:90,y:152,class:"node-t","text-anchor":"middle"}),"SB1");
+    svg.appendChild(el("circle",{cx:90,cy:200,r:18,class:"btnface",id:"b2"}));
+    svg.appendChild(el("text",{x:90,y:204,class:"node-t","text-anchor":"middle"}),"SB2");
+    svg.appendChild(poly([[108,148],[120,148]],{class:"air",id:"e1"}));
+    svg.appendChild(poly([[108,200],[120,168]],{class:"air",id:"e2"}));
+  }
+  // 主阀 → 气缸
+  svg.appendChild(poly([[494,282],[560,282]],{class:"air",id:"o1"}));
+  svg.appendChild(poly([[560,300],[494,300]],{class:"air",id:"o2"}));
+  // 气缸
+  svg.appendChild(el("text",{x:620,y:238,class:"node-d","text-anchor":"middle"}),"双作用气缸");
+  svg.appendChild(el("rect",{x:560,y:256,width:120,height:52,rx:4,class:"cyl-body"}));
+  const rod=el("g",{id:"rod"});
+  rod.appendChild(el("rect",{x:620,y:276,width:54,height:14,rx:2,class:"piston"}));
+  rod.appendChild(el("rect",{x:616,y:268,width:12,height:30,rx:2,class:"piston-cap"}));
+  svg.appendChild(rod);
+  svg.appendChild(el("text",{x:580,y:320,class:"lbl","text-anchor":"middle"}),"A");
+  svg.appendChild(el("text",{x:660,y:320,class:"lbl","text-anchor":"middle"}),"B");
+}
+
+function renderCells(){
+  const andOut = sb1 && sb2;
+  const set=(id,v,on)=>{ const e=document.getElementById(id); e.textContent=v; e.closest(".andcell").classList.toggle("on",!!on); };
+  set("s1v", sb1?"开":"关", sb1);
+  set("s2v", sb2?"开":"关", sb2);
+  set("andv", andOut?"有":"无", andOut);
+  set("s3v", sb3?"开":"关", sb3);
+}
+
+function log(msg,cls){
+  const box=document.getElementById("log");
+  const row=document.createElement("div");row.className="row";
+  const ts=document.createElement("span");ts.className="ts";ts.textContent=new Date().toLocaleTimeString("zh-CN",{hour12:false});
+  const ev=document.createElement("span");ev.className="ev "+(cls||"");ev.textContent=msg;
+  row.appendChild(ts);row.appendChild(ev);box.appendChild(row);box.scrollTop=box.scrollHeight;
+}
+
+function paint(){
+  const andOut = sb1 && sb2;
+  // 按钮高亮
+  const b1=document.getElementById("b1"),b2=document.getElementById("b2"),b3=document.getElementById("b3");
+  if(b1)b1.classList.toggle("on",sb1);
+  if(b2)b2.classList.toggle("on",sb2);
+  if(b3)b3.classList.toggle("on",sb3);
+  // 与门两输入
+  const i1=document.getElementById("i1"),i2=document.getElementById("i2");
+  if(i1)i1.classList.toggle("on",sb1);
+  if(i2)i2.classList.toggle("on",sb2);
+  // 主阀 + 输出气路
+  const mainv=document.getElementById("mainvalve"),pos1=document.getElementById("pos1");
+  const driving = andOut && !sb3;
+  if(mainv)mainv.classList.toggle("on",driving);
+  if(pos1)pos1.classList.toggle("on",driving);
+  const o1=document.getElementById("o1"),o2=document.getElementById("o2");
+  if(o1)o1.classList.toggle("on",driving);
+  if(o2)o2.classList.toggle("on",!sb3 && extProg>0.02);
+  // 电气高亮
+  const rel=document.getElementById("relayBox"),sol=document.getElementById("solBox");
+  if(rel)rel.classList.toggle("on",scheme==="elec"&&driving);
+  if(sol)sol.classList.toggle("on",scheme==="elec"&&driving);
+  const e1=document.getElementById("e1"),e2=document.getElementById("e2");
+  if(e1)e1.classList.toggle("on",sb1);
+  if(e2)e2.classList.toggle("on",sb2);
+  // 活塞
+  const rod=document.getElementById("rod");
+  if(rod){
+    let off;
+    if(sb3 && extProg<=0) off=-54;                 // 复位缩回
+    else off=-54 + extProg*54;
+    rod.setAttribute("transform","translate("+off+",0)");
+  }
+  renderCells();
+}
+
+function tick(dt){
+  const andOut = sb1 && sb2;
+  if(andOut && !sb3){ extProg=Math.min(1,extProg+dt/SPEED); }
+  else if(sb3){ extProg=Math.max(0,extProg-dt/(SPEED*0.8)); }
+  paint();
+}
+
+function loop(ts){
+  const dt=(ts-last)/1000; last=ts;
+  tick(dt);
+  raf=requestAnimationFrame(loop);
+}
+
+function wireButtons(){
+  const b1=document.getElementById("b1"),b2=document.getElementById("b2"),b3=document.getElementById("b3");
+  if(b1)b1.onclick=()=>{ sb1=!sb1; log("SB1 "+(sb1?"按下":"松开")+(sb1&&!sb2?"（仅一手，与门无输出）":""),sb1?"on":"sys"); };
+  if(b2)b2.onclick=()=>{ sb2=!sb2; log("SB2 "+(sb2?"按下":"松开")+(sb2&&!sb1?"（仅一手，与门无输出）":""),sb2?"on":"sys"); };
+  if(b3)b3.onclick=()=>{ sb3=!sb3; log("SB3 "+(sb3?"按下 → 复位（缩回）":"松开"),sb3?"sig":"sys"); };
+}
+
+document.getElementById("tabs").addEventListener("click",e=>{
+  const tab=e.target.closest(".scheme-tab"); if(!tab)return;
+  scheme=tab.dataset.s;
+  document.querySelectorAll(".scheme-tab").forEach(t=>t.classList.toggle("active",t.dataset.s===scheme));
+  sb1=sb2=sb3=false; extProg=0;
+  build(); wireButtons(); paint();
+  log("切换到「"+({direct:"直接控制",indirect:"间接控制",elec:"电气控制"})[scheme]+"」方案","sys");
+});
+
+function start(){
+  log("启动循环：请同时按 SB1 + SB2","sys");
+  last=performance.now();
+  if(raf)cancelAnimationFrame(raf);
+  raf=requestAnimationFrame(loop);
+}
+start(); build(); wireButtons(); paint();
+</script>
+</body>
+</html>
