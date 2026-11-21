@@ -5,337 +5,219 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>3.2 板材成型 · FluidSIM-P 3.6 在线仿真器</title>
 <style>
-:root{
---bg:#0d1320;--panel:#141c2c;--panel2:#1a2538;--line:#27354e;
---ink:#e6ecf6;--muted:#8494ac;--accent:#4aa3ff;--green:#33d6a6;--amber:#ffb454;
---piston:#f2a83c;--crank:#b98a5e;--sheet:#7fd1c0;--bad:#ff5d73;
-}
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
-font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif}
-header{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;
-flex-wrap:wrap;gap:6px;align-items:baseline;justify-content:space-between}
-header h1{font-size:18px;margin:0;font-weight:600}
-header .sub{color:var(--muted);font-size:12px}
+:root{--bg:#0d1320;--panel:#141c2c;--panel2:#1a2538;--line:#27354e;--ink:#e6ecf6;--muted:#8494ac;--accent:#4aa3ff;--green:#33d6a6;--amber:#ffb454;--piston:#f2a83c;--crank:#b98a5e;--sheet:#7fd1c0;--bad:#ff5d73}
+*{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+header{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:6px;align-items:baseline;justify-content:space-between}
+header h1{font-size:18px;margin:0;font-weight:600}header .sub{color:var(--muted);font-size:12px}
 .wrap{display:grid;grid-template-columns:1.5fr 1fr;gap:14px;padding:14px}
 @media(max-width:1000px){.wrap{grid-template-columns:1fr}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px;margin-bottom:12px}
 .card h2{font-size:12px;color:var(--muted);margin:0 0 9px;font-weight:600;letter-spacing:.04em}
 svg{max-width:100%;height:auto;display:block;margin:auto}
 .legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:9px;font-size:11px;color:var(--muted)}
-.legend span{display:inline-flex;align-items:center;gap:5px}
-.dot{width:9px;height:9px;border-radius:3px;display:inline-block}
-.hbtn{border:1px solid var(--line);border-radius:10px;padding:11px;background:var(--panel2);
-text-align:center;cursor:pointer;user-select:none;transition:all .12s;flex:1;min-width:90px}
-.hbtn .t{font-size:13px;font-weight:700}
-.hbtn .d{font-size:11px;color:var(--muted);margin-top:2px}
-.hbtn.on{border-color:var(--accent);background:rgba(74,163,255,.2)}
-.hbtn.on .t{color:var(--accent)}
-.hbtn.warn.on{border-color:var(--amber);background:rgba(255,180,84,.18)}
-.hbtn.warn.on .t{color:var(--amber)}
-.btn{cursor:pointer;border:1px solid var(--line);border-radius:9px;background:var(--panel2);
-color:var(--ink);padding:8px 13px;font-size:13px;font-family:inherit}
-.btn:hover{border-color:var(--accent)}
-.btn.go{background:var(--green);border-color:var(--green);color:#04231a;font-weight:700}
+.legend span{display:inline-flex;align-items:center;gap:5px}.dot{width:9px;height:9px;border-radius:3px;display:inline-block}
+.hbtn{border:1px solid var(--line);border-radius:10px;padding:11px;background:var(--panel2);text-align:center;cursor:pointer;user-select:none;transition:all .12s;flex:1;min-width:90px}
+.hbtn .t{font-size:13px;font-weight:700}.hbtn .d{font-size:11px;color:var(--muted);margin-top:2px}
+.hbtn.on{border-color:var(--accent);background:rgba(74,163,255,.2)}.hbtn.on .t{color:var(--accent)}
+.hbtn.warn.on{border-color:var(--amber);background:rgba(255,180,84,.18)}.hbtn.warn.on .t{color:var(--amber)}
+.btn{cursor:pointer;border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--ink);padding:8px 13px;font-size:13px;font-family:inherit}
+.btn:hover{border-color:var(--accent)}.btn.go{background:var(--green);border-color:var(--green);color:#04231a;font-weight:700}
 .gauges{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0}
 .gauge{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px}
-.gauge .k{font-size:10px;color:var(--muted)}
-.gauge .v{font-size:14px;font-weight:700;margin-top:2px}
-.gauge .bar{height:4px;border-radius:2px;background:var(--panel);margin-top:5px;overflow:hidden}
-.gauge .bar i{display:block;height:100%;background:var(--green)}
-.log{height:130px;overflow:auto;font-size:11px;line-height:1.7;
-font-family:Consolas,monospace;background:var(--panel2);border-radius:8px;padding:7px}
-.log .row{display:flex;gap:7px}
-.log .ts{color:var(--muted);flex:0 0 52px}
-.log .ev.on{color:var(--green)}.log .ev.sig{color:var(--accent)}
-.log .ev.sys{color:var(--amber)}.log .ev.bad{color:var(--bad)}
-.note{font-size:12px;line-height:1.65;color:var(--ink);background:var(--panel2);
-border-radius:10px;padding:10px;margin-top:9px}
+.gauge .k{font-size:10px;color:var(--muted)}.gauge .v{font-size:14px;font-weight:700;margin-top:2px}
+.gauge .bar{height:4px;border-radius:2px;background:var(--panel);margin-top:5px;overflow:hidden}.gauge .bar i{display:block;height:100%;background:var(--green)}
+.log{height:130px;overflow:auto;font-size:11px;line-height:1.7;font-family:Consolas,monospace;background:var(--panel2);border-radius:8px;padding:7px}
+.log .row{display:flex;gap:7px}.log .ts{color:var(--muted);flex:0 0 52px}
+.log .ev.on{color:var(--green)}.log .ev.sig{color:var(--accent)}.log .ev.sys{color:var(--amber)}.log .ev.bad{color:var(--bad)}
+.note{font-size:12px;line-height:1.65;color:var(--ink);background:var(--panel2);border-radius:10px;padding:10px;margin-top:9px}
 .note b{color:var(--accent)}
 footer{padding:12px 20px;color:var(--muted);font-size:11px;border-top:1px solid var(--line);text-align:center}
-/* SVG styles */
-.lbl{font-size:11px;fill:var(--muted)}
-.lbl.b{font-weight:700;fill:var(--ink);font-size:12px}
+.lbl{font-size:11px;fill:var(--muted)}.lbl.b{font-weight:700;fill:var(--ink);font-size:12px}
 .node-box{fill:var(--panel2);stroke:var(--line);stroke-width:1.5}
 .node-box.on{stroke:var(--green);fill:rgba(51,214,166,.14)}
 .node-box.and{stroke:var(--accent);fill:rgba(74,163,255,.12)}
 .node-box.and.on{stroke:var(--green);fill:rgba(51,214,166,.18)}
-.node-t{font-size:12px;fill:var(--ink);font-weight:600}
-.node-d{font-size:10px;fill:var(--muted)}
-.air{fill:none;stroke:#243149;stroke-width:2.5;stroke-linecap:round}
-.air.on{stroke:var(--green);stroke-width:3}
-.airflow{fill:none;stroke:var(--green);stroke-width:2.5;opacity:0;stroke-dasharray:8 6}
-.airflow.show{opacity:.9}
-.cyl-body{fill:#1e2c42;stroke:#4a5c7a;stroke-width:1.5}
-.cyl-cap{fill:#3a4d70;stroke:#6a7c9a;stroke-width:1}
-.piston{fill:var(--piston);opacity:.95}
-.piston-cap{fill:#3a4d70;stroke:var(--ink);stroke-width:1}
+.node-t{font-size:12px;fill:var(--ink);font-weight:600}.node-d{font-size:10px;fill:var(--muted)}
+.air{fill:none;stroke:#243149;stroke-width:2.5;stroke-linecap:round}.air.on{stroke:var(--green);stroke-width:3}
+.airflow{fill:none;stroke:var(--green);stroke-width:2.5;opacity:0;stroke-dasharray:8 6}.airflow.show{opacity:.9}
+.cyl-body{fill:#1e2c42;stroke:#4a5c7a;stroke-width:1.5}.cyl-cap{fill:#3a4d70;stroke:#6a7c9a;stroke-width:1}
+.piston{fill:var(--piston);opacity:.95}.piston-cap{fill:#3a4d70;stroke:var(--ink);stroke-width:1}
 .btnface{fill:var(--panel2);stroke:var(--line);stroke-width:1.5;cursor:pointer}
-.btnface.on{fill:rgba(74,163,255,.3);stroke:var(--accent)}
-.btnface.warn.on{fill:rgba(255,180,84,.28);stroke:var(--amber)}
-.cr{stroke:var(--crank);stroke-width:7;stroke-linecap:round}
-.cr2{stroke:#8a6a44;stroke-width:5;stroke-linecap:round}
+.btnface.on{fill:rgba(74,163,255,.3);stroke:var(--accent)}.btnface.warn.on{fill:rgba(255,180,84,.28);stroke:var(--amber)}
+.cr{stroke:var(--crank);stroke-width:7;stroke-linecap:round}.cr2{stroke:#8a6a44;stroke-width:5;stroke-linecap:round}
 .pin{fill:#cdd7ea;stroke:#4a5c7a;stroke-width:1}
-.sheet{fill:var(--sheet);opacity:.5;stroke:var(--sheet);stroke-width:2;rx:3}
-.sheet.down{opacity:.9}
+.sheet{fill:var(--sheet);opacity:.5;stroke:var(--sheet);stroke-width:2;rx:3}.sheet.down{opacity:.9}
 .mold-base{fill:#22304a;stroke:#4a5c7a;stroke-width:1}
 .title-t{font-size:13px;fill:var(--ink);font-weight:700}
-.end-sig{fill:var(--panel2);stroke:var(--line);stroke-width:1.5}
-.end-sig.on{stroke:var(--green)}
+.end-sig{fill:var(--panel2);stroke:var(--line);stroke-width:1.5}.end-sig.on{stroke:var(--green)}
 .fs-icon{opacity:.92}
+
 </style>
 </head>
 <body>
 <header>
 <div>
-  <h1>3.2 板材成型 · FluidSIM-P 3.6 在线仿真器</h1>
-  <div class="sub">元件符号取自本机 FluidSIM-P 符号库（bmp16c），仿真逻辑复现 FluidSIM 信号传播引擎，纯浏览器运行。</div>
+<h1>3.2 板材成型 · FluidSIM-P 3.6 在线仿真器</h1>
+<div class="sub">元件符号取自本机 FluidSIM-P 符号库（bmp16c），仿真逻辑复现 FluidSIM 信号传播引擎，纯浏览器运行。</div>
 </div>
 <div class="sub">液压与气压传动 · 第3章 · 学习通微课</div>
 </header>
-
 <div class="wrap">
-  <div class="card">
-    <h2>仿真回路（双手双压阀与逻辑 · 曲柄连杆压板材）</h2>
-    <div id="stage"><svg id="scene" width="720" height="520" viewBox="0 0 720 520"></svg></div>
-    <div class="legend">
-      <span><span class="dot" style="background:var(--green)"></span>有气压信号</span>
-      <span><span class="dot" style="background:var(--accent)"></span>与门/主阀</span>
-      <span><span class="dot" style="background:var(--piston)"></span>活塞杆</span>
-      <span><span class="dot" style="background:var(--crank)"></span>曲柄连杆</span>
-      <span><span class="dot" style="background:var(--sheet)"></span>板材</span>
-      <span><span class="dot" style="background:var(--amber)"></span>复位按钮</span>
-    </div>
-  </div>
-
-  <div>
-    <div class="card">
-      <h2>操作面板（等同 FluidSIM F9 运行后点阀）</h2>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-        <div class="hbtn" id="hb1"><div class="t">SB1 手1</div><div class="d">双压阀入口 A</div></div>
-        <div class="hbtn" id="hb2"><div class="t">SB2 手2</div><div class="d">双压阀入口 B</div></div>
-        <div class="hbtn warn" id="hb3"><div class="t">SB3 复位</div><div class="d">缩回板材抬起</div></div>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-        <button class="btn go" id="run">▶ 运行仿真</button>
-        <button class="btn" id="pause">⏸ 暂停</button>
-        <button class="btn" id="reset">↺ 复位</button>
-      </div>
-      <div class="gauges">
-        <div class="gauge"><div class="k">双压阀 1V0 输出</div><div class="v" id="gAnd">关</div>
-          <div class="bar"><i id="bAnd" style="width:0%"></i></div></div>
-        <div class="gauge"><div class="k">1A1 活塞伸出量</div><div class="v" id="gPiston">0%</div>
-          <div class="bar"><i id="bPiston" style="width:0%"></i></div></div>
-        <div class="gauge"><div class="k">板材下压量</div><div class="v" id="gSheet">0%</div>
-          <div class="bar"><i id="bSheet" style="width:0%"></i></div></div>
-      </div>
-      <div class="note">
-        <b>与逻辑</b>：SB1 与 SB2 <b>必须同时</b>按下 → 双压阀 1V0 才有输出 → 主阀 1V1 换向 → 气缸 1A1 伸出 → 曲柄压板材成型。<br>
-        <b>安全原理</b>：单手无效，保证双手离开危险区才能启动，等同 FluidSIM 里按 F9 后操作 1S1/1S2 的效果。
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>事件日志</h2>
-      <div class="log" id="log"></div>
-    </div>
-  </div>
+<div class="card">
+<h2>仿真回路（双手双压阀与逻辑 · 曲柄连杆压板材）</h2>
+<div id="stage"><svg id="scene" width="720" height="520" viewBox="0 0 720 520"></svg></div>
+<div class="legend">
+<span><span class="dot" style="background:var(--green)"></span>有气压信号</span>
+<span><span class="dot" style="background:var(--accent)"></span>与门/主阀</span>
+<span><span class="dot" style="background:var(--piston)"></span>活塞杆</span>
+<span><span class="dot" style="background:var(--crank)"></span>曲柄连杆</span>
+<span><span class="dot" style="background:var(--sheet)"></span>板材</span>
+<span><span class="dot" style="background:var(--amber)"></span>复位按钮</span>
 </div>
-
-<footer>
-  元件符号来源：本机 FluidSIM-P 3.6 符号库（C:\Program Files (x86)\FluidSIM-P\bmp16c）· 仿真逻辑：复现 FluidSIM 信号传播引擎 · 纯浏览器，无需安装软件
-</footer>
+</div>
+<div>
+<div class="card">
+<h2>操作面板（等同 FluidSIM F9 运行后点阀）</h2>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+<div class="hbtn" id="hb1"><div class="t">SB1 手1</div><div class="d">双压阀入口 A</div></div>
+<div class="hbtn" id="hb2"><div class="t">SB2 手2</div><div class="d">双压阀入口 B</div></div>
+<div class="hbtn warn" id="hb3"><div class="t">SB3 复位</div><div class="d">缩回板材抬起</div></div>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+<button class="btn go" id="run">▶ 运行仿真</button>
+<button class="btn" id="pause">⏸ 暂停</button>
+<button class="btn" id="reset">↺ 复位</button>
+</div>
+<div class="gauges">
+<div class="gauge"><div class="k">双压阀 1V0 输出</div><div class="v" id="gAnd">关</div><div class="bar"><i id="bAnd" style="width:0%"></i></div></div>
+<div class="gauge"><div class="k">1A1 活塞伸出量</div><div class="v" id="gPiston">0%</div><div class="bar"><i id="bPiston" style="width:0%"></i></div></div>
+<div class="gauge"><div class="k">板材下压量</div><div class="v" id="gSheet">0%</div><div class="bar"><i id="bSheet" style="width:0%"></i></div></div>
+</div>
+<div class="note">
+<b>与逻辑</b>：SB1 与 SB2 <b>必须同时</b>按下 → 双压阀 1V0 才有输出 → 主阀 1V1 换向 → 气缸 1A1 伸出 → 曲柄压板材成型。<br>
+<b>安全原理</b>：单手无效，保证双手离开危险区才能启动，等同 FluidSIM 里按 F9 后操作 1S1/1S2 的效果。
+</div>
+</div>
+<div class="card">
+<h2>事件日志</h2>
+<div class="log" id="log"></div>
+</div>
+</div>
+</div>
+<footer>元件符号来源：本机 FluidSIM-P 3.6 符号库 · 仿真逻辑：复现 FluidSIM 信号传播引擎 · 纯浏览器，无需安装软件</footer>
 
 <script src="FSIMG.js"></script>
 <script>
 "use strict";
 const svg=document.getElementById("scene"),NS="http://www.w3.org/2000/svg";
 const IMG=window.FSIMG||{};
-
 function el(t,a,c){
   const e=document.createElementNS(NS,t);
   for(const k in a)e.setAttribute(k,a[k]);
-  (c||[]).forEach(x=>{
-    if(typeof x==="string")e.textContent=x;
-    else if(x)e.appendChild(x);
-  });
+  (c||[]).forEach(x=>{if(typeof x==="string")e.textContent=x;else if(x)e.appendChild(x);});
   return e;
 }
-function poly(p,ex){
-  return el("polyline",Object.assign({points:p.map(q=>q.join(",")).join(" ")},ex||{}));
+function poly(points,ex){
+  const e=el("polyline",Object.assign({points:points.map(q=>q.join(",")).join(" ")},ex||{}));
+  svg.appendChild(e);return e;
 }
 function label(x,y,txt,cls){
   const e=el("text",{x:x,y:y,class:cls||"lbl","text-anchor":"middle"});
   e.textContent=txt;svg.appendChild(e);return e;
 }
 function fsImg(key,x,y,w,h){
-  // draws a FluidSIM symbol bitmap centered at (x,y) with size w×h
-  const data=IMG[key];
-  if(!data)return;
-  const img=el("image",{x:x,y:y,width:w,height:h,href:data,preserveAspectRatio:"xMidYMid meet",class:"fs-icon"});
-  svg.appendChild(img);
+  const data=IMG[key];if(!data)return;
+  svg.appendChild(el("image",{x:x,y:y,width:w,height:h,href:data,preserveAspectRatio:"xMidYMid meet",class:"fs-icon"}));
 }
-
-// ── state ──────────────────────────────────────────────────────────────────
 let sb1=false,sb2=false,sb3=false;
-let andOut=0;          // 双压阀输出 0..1（气路延迟）
-let piston=0;          // 活塞伸出 0..1
-let running=false,last=0,raf=null;
+let andOut=0,piston=0,running=false,last=0,raf=null;
 const AND_TAU=0.20,PISTON_TAU=0.55;
-
-// ── build scene ─────────────────────────────────────────────────────────────
 function build(){
   svg.innerHTML="";
-  svg.appendChild(label(360,24,"3.2 板材成型 · 双手双压阀回路（FluidSIM-P 仿真）","title-t"));
-
-  // ── 气源 (s3 = 空气压缩机+净化) ─────────────────────────────────────────
+  label(360,24,"3.2 板材成型 · 双手双压阀回路（FluidSIM-P 仿真）","title-t");
   svg.appendChild(el("rect",{x:36,y:170,width:100,height:60,rx:10,class:"node-box"}));
-  label(86,195,"气源","node-t");
-  label(86,214,"1Q 空压机","node-d");
+  label(86,195,"气源","node-t");label(86,214,"1Q 空压机","node-d");
   fsImg("s3",44,174,84,48);
-
-  // ── 双压阀 1V0（pn5 = 双压阀/与门）────────────────────────────────────
   svg.appendChild(el("rect",{x:210,y:170,width:80,height:60,rx:8,class:"node-box and",id:"andV"}));
-  label(250,164,"双压阀 1V0","node-d");
-  fsImg("pn5",218,174,64,48);
-
-  // ── SB1（顶部按钮）──────────────────────────────────────────────────────
+  label(250,164,"双压阀 1V0","node-d");fsImg("pn5",218,174,64,48);
   svg.appendChild(el("circle",{cx:160,cy:120,r:24,class:"btnface",id:"b1"}));
-  label(160,125,"SB1","node-t");
-  fsImg("ps0",146,104,28,28);
-  poly(svg,[[184,132],[222,178]],{class:"air",id:"i1"});
-  poly(svg,[[184,132],[222,178]],{class:"airflow",id:"i1f"});
-
-  // ── SB2（底部按钮）──────────────────────────────────────────────────────
+  label(160,125,"SB1","node-t");fsImg("ps0",146,104,28,28);
+  poly([[184,132],[222,178]],{class:"air",id:"i1"});
+  poly([[184,132],[222,178]],{class:"airflow",id:"i1f"});
   svg.appendChild(el("circle",{cx:160,cy:280,r:24,class:"btnface",id:"b2"}));
-  label(160,285,"SB2","node-t");
-  fsImg("ps0",146,264,28,28);
-  poly(svg,[[184,268],[222,240]],{class:"air",id:"i2"});
-  poly(svg,[[184,268],[222,240]],{class:"airflow",id:"i2f"});
-
-  // ── 双压阀 → 主阀 1V1（el4 = 5/2 电磁阀）────────────────────────────────
-  poly(svg,[[290,200],[350,200]],{class:"air",id:"toV"});
-  poly(svg,[[290,200],[350,200]],{class:"airflow",id:"toVf"});
+  label(160,285,"SB2","node-t");fsImg("ps0",146,264,28,28);
+  poly([[184,268],[222,240]],{class:"air",id:"i2"});
+  poly([[184,268],[222,240]],{class:"airflow",id:"i2f"});
+  poly([[290,200],[350,200]],{class:"air",id:"toV"});
+  poly([[290,200],[350,200]],{class:"airflow",id:"toVf"});
   svg.appendChild(el("rect",{x:350,y:170,width:70,height:60,rx:6,class:"node-box",id:"mainV"}));
-  label(385,164,"主阀 1V1","node-d");
-  fsImg("el4",358,174,54,48);
-
-  // ── 主阀 → 气缸 1A1（a4 = 双作用气缸）──────────────────────────────────
-  poly(svg,[[420,185],[510,182]],{class:"air",id:"o1"});
-  poly(svg,[[420,218],[510,218]],{class:"air",id:"o2"});
-  poly(svg,[[420,185],[510,182]],{class:"airflow",id:"o1f"});
-  poly(svg,[[420,218],[510,218]],{class:"airflow",id:"o2f"});
-  label(465,172,"A","lbl");
-  label(465,232,"B","lbl");
-
-  // 气缸
+  label(385,164,"主阀 1V1","node-d");fsImg("el4",358,174,54,48);
+  poly([[420,185],[510,182]],{class:"air",id:"o1"});
+  poly([[420,218],[510,218]],{class:"air",id:"o2"});
+  poly([[420,185],[510,182]],{class:"airflow",id:"o1f"});
+  poly([[420,218],[510,218]],{class:"airflow",id:"o2f"});
+  label(465,172,"A","lbl");label(465,232,"B","lbl");
   label(575,160,"双作用气缸 1A1","node-d");
   svg.appendChild(el("rect",{x:510,y:175,width:130,height:50,rx:4,class:"cyl-body"}));
   svg.appendChild(el("rect",{x:510,y:175,width:10,height:50,rx:2,class:"cyl-cap"}));
   svg.appendChild(el("rect",{x:630,y:175,width:10,height:50,rx:2,class:"cyl-cap"}));
-  // 活塞（会滑动）
   const rod=el("g",{id:"rod"});
   rod.appendChild(el("rect",{x:560,y:188,width:55,height:24,rx:2,class:"piston"}));
   rod.appendChild(el("rect",{x:554,y:180,width:12,height:40,rx:2,class:"piston-cap"}));
   svg.appendChild(rod);
-  // 活塞杆伸出（右端）
   const rodOut=el("g",{id:"rodOut"});
   rodOut.appendChild(el("rect",{x:614,y:196,width:40,height:8,rx:2,class:"piston"}));
   svg.appendChild(rodOut);
-
-  // ── 曲柄连杆 ─────────────────────────────────────────────────────────────
-  // 曲柄轴在气缸右端 x=654, y=200；曲柄臂连到滑块 y
   const crankG=el("g",{id:"crankG"});
   crankG.appendChild(el("line",{x1:654,y1:200,x2:680,y2:260,class:"cr",id:"crankA"}));
   crankG.appendChild(el("line",{x1:680,y1:260,x2:680,y2:320,class:"cr2",id:"rockerA"}));
   crankG.appendChild(el("circle",{cx:654,cy:200,r:5,class:"pin"}));
   crankG.appendChild(el("circle",{cx:680,cy:260,r:5,class:"pin"}));
   svg.appendChild(crankG);
-
-  // 板材
   svg.appendChild(el("rect",{x:620,y:320,width:120,height:14,rx:3,class:"sheet",id:"sheet"}));
   label(680,348,"塑料板材","node-d");
-  // 模具座
   svg.appendChild(el("rect",{x:610,y:336,width:140,height:10,rx:2,class:"mold-base"}));
   label(680,358,"成型模具座","node-d");
-
-  // ── 到位信号 1S1（伸出到位）─────────────────────────────────────────────
   svg.appendChild(el("rect",{x:520,y:380,width:110,height:42,rx:8,class:"end-sig",id:"endSig"}));
-  label(575,398,"到位 1S1","node-d");
-  label(575,414,"伸出到位信号","node-d");
+  label(575,398,"到位 1S1","node-d");label(575,414,"伸出到位信号","node-d");
   fsImg("ps1",528,384,28,28);
-
-  // ── 复位按钮 SB3（左侧下方）─────────────────────────────────────────────
-  svg.appendChild(el("circle",{cx:380,y:392,cx:380,cy:392,r:24,class:"btnface warn",id:"b3"}));
-  label(380,397,"SB3","node-t");
-  fsImg("ps0",366,376,28,28);
+  svg.appendChild(el("circle",{cx:380,cy:392,r:24,class:"btnface warn",id:"b3"}));
+  label(380,397,"SB3","node-t");fsImg("ps0",366,376,28,28);
 }
-
-// ── paint ──────────────────────────────────────────────────────────────────
 function paint(){
   const driving=sb1&&sb2&&!sb3;
   const g=id=>document.getElementById(id);
-
-  g("b1").classList.toggle("on",sb1);
-  g("b2").classList.toggle("on",sb2);
-  g("b3").classList.toggle("on",sb3);
-  g("i1").classList.toggle("on",sb1);
-  g("i2").classList.toggle("on",sb2);
-  g("andV").classList.toggle("on",andOut>0.5);
-  g("mainV").classList.toggle("on",andOut>0.5);
-  g("toV").classList.toggle("on",andOut>0.5);
-  g("o1").classList.toggle("on",driving);
+  g("b1").classList.toggle("on",sb1);g("b2").classList.toggle("on",sb2);g("b3").classList.toggle("on",sb3);
+  g("i1").classList.toggle("on",sb1);g("i2").classList.toggle("on",sb2);
+  g("andV").classList.toggle("on",andOut>0.5);g("mainV").classList.toggle("on",andOut>0.5);
+  g("toV").classList.toggle("on",andOut>0.5);g("o1").classList.toggle("on",driving);
   g("o2").classList.toggle("on",piston>0.05&&!sb3);
-
-  // 气流粒子动画
   const off=(performance.now()/40)%22;
-  const tf=g("toVf"),i1f=g("i1f"),i2f=g("i1f"),o1f=g("o1f"),o2f=g("o2f");
-  if(toVf===null)return;
   const tf2=g("toVf");if(tf2){tf2.classList.toggle("show",andOut>0.5);tf2.style.strokeDashoffset=-off;}
   const i1f2=g("i1f");if(i1f2){i1f2.classList.toggle("show",sb1);i1f2.style.strokeDashoffset=-off;}
   const i2f2=g("i2f");if(i2f2){i2f2.classList.toggle("show",sb2);i2f2.style.strokeDashoffset=-off;}
   const o1f2=g("o1f");if(o1f2){o1f2.classList.toggle("show",driving);o1f2.style.strokeDashoffset=-off;}
   const o2f2=g("o2f");if(o2f2){o2f2.classList.toggle("show",piston>0.05&&!sb3);o2f2.style.strokeDashoffset=-off;}
-
-  // 活塞滑动：缩回时活塞在左(x=560)，伸出时向右移动 max 40px
   const rod=g("rod"),rodOut=g("rodOut");
-  const shift=Math.round((1-piston)*-40);
   rod.setAttribute("transform","translate("+(-40*(1-piston))+" 0)");
   rodOut.setAttribute("transform","translate("+(piston*40)+" 0)");
-
-  // 曲柄：活塞杆右端点随 piston 移动
   const crankA=g("crankA"),rockerA=g("rockerA");
-  const rodEndX=654;
-  const crankMidY=200+(piston*40)*0.35;  // 曲柄中点随活塞伸出下降
-  crankA.setAttribute("x1",rodEndX);crankA.setAttribute("y1",200);
+  crankA.setAttribute("x1",654);crankA.setAttribute("y1",200);
   crankA.setAttribute("x2",680);crankA.setAttribute("y2",260);
   rockerA.setAttribute("x1",680);rockerA.setAttribute("y1",260);
   rockerA.setAttribute("x2",680);rockerA.setAttribute("y2",320+(1-piston)*8);
-
-  // 板材下压
   const sheet=g("sheet");
   sheet.setAttribute("transform","translate(0,"+(piston*12)+"px)");
   sheet.classList.toggle("down",piston>0.35);
-
-  // 到位信号
-  const endSig=g("endSig");
-  endSig.classList.toggle("on",piston>0.95);
-
-  // 仪表
+  g("endSig").classList.toggle("on",piston>0.95);
   g("gAnd").textContent=andOut>0.5?"开":"关";
   g("bAnd").style.width=(andOut*100).toFixed(0)+"%";
   g("gPiston").textContent=(piston*100).toFixed(0)+"%";
   g("bPiston").style.width=(piston*100).toFixed(0)+"%";
   g("gSheet").textContent=(piston*100).toFixed(0)+"%";
   g("bSheet").style.width=(piston*100).toFixed(0)+"%";
-
-  // 侧面板按钮同步
-  g("hb1").classList.toggle("on",sb1);
-  g("hb2").classList.toggle("on",sb2);
-  g("hb3").classList.toggle("on",sb3);
+  g("hb1").classList.toggle("on",sb1);g("hb2").classList.toggle("on",sb2);g("hb3").classList.toggle("on",sb3);
 }
-
-// ── tick ────────────────────────────────────────────────────────────────────
 function tick(dt){
   const andTarget=(sb1&&sb2&&!sb3)?1:0;
   andOut+=(andTarget-andOut)*Math.min(1,dt/AND_TAU);
@@ -344,7 +226,6 @@ function tick(dt){
   piston+=(pTarget-piston)*Math.min(1,dt/PISTON_TAU);
   if(Math.abs(piston-pTarget)<0.005)piston=pTarget;
 }
-
 function log(msg,cls){
   const box=document.getElementById("log");
   const row=document.createElement("div");row.className="row";
@@ -353,58 +234,30 @@ function log(msg,cls){
   const ev=document.createElement("span");ev.className="ev "+(cls||"");ev.textContent=msg;
   row.appendChild(ts);row.appendChild(ev);box.appendChild(row);
   box.scrollTop=box.scrollHeight;
-  // cap log
   while(box.children.length>60)box.removeChild(box.firstChild);
 }
-
-let wasExt=false;
 function loop(ts){
   const dt=Math.min(0.05,(ts-last)/1000);last=ts;
   const prevPiston=piston;
   tick(dt);
-  if(piston>0.96&&prevPiston<=0.96){
-    log("1A1 伸出到位，1S1 触发，板材成型完成 ✓","on");
-  }
-  if(piston<0.04&&prevPiston>=0.04){
-    log("1A1 缩回到位，板材抬起","sys");
-  }
+  if(piston>0.96&&prevPiston<=0.96)log("1A1 伸出到位，1S1 触发，板材成型完成 ✓","on");
+  if(piston<0.04&&prevPiston>=0.04)log("1A1 缩回到位，板材抬起","sys");
   paint();
   if(running)raf=requestAnimationFrame(loop);
 }
-
-// ── events ─────────────────────────────────────────────────────────────────
-document.getElementById("hb1").onclick=()=>{
-  sb1=!sb1;
-  log("SB1 "+(sb1?"按下":"松开")+(sb1&&!sb2?"（仅一手，1V0 无输出）":""),sb1?"on":"sys");
-};
-document.getElementById("hb2").onclick=()=>{
-  sb2=!sb2;
-  log("SB2 "+(sb2?"按下":"松开")+(sb2&&!sb1?"（仅一手，1V0 无输出）":""),sb2?"on":"sys");
-};
-document.getElementById("hb3").onclick=()=>{
-  sb3=!sb3;
-  log("SB3 "+(sb3?"按下 → 1A1 缩回，板材抬起":"松开"),sb3?"sig":"sys");
-};
+document.getElementById("hb1").onclick=()=>{sb1=!sb1;log("SB1 "+(sb1?"按下":"松开")+(sb1&&!sb2?"（仅一手，1V0 无输出）":""),sb1?"on":"sys");};
+document.getElementById("hb2").onclick=()=>{sb2=!sb2;log("SB2 "+(sb2?"按下":"松开")+(sb2&&!sb1?"（仅一手，1V0 无输出）":""),sb2?"on":"sys");};
+document.getElementById("hb3").onclick=()=>{sb3=!sb3;log("SB3 "+(sb3?"按下 → 1A1 缩回，板材抬起":"松开"),sb3?"sig":"sys");};
+document.getElementById("run").onclick=()=>{if(!running){running=true;last=performance.now();raf=requestAnimationFrame(loop);log("▶ 运行仿真（等同 FluidSIM F9）","sys");}};
+document.getElementById("pause").onclick=()=>{running=false;log("⏸ 暂停","sys");};
+document.getElementById("reset").onclick=()=>{sb1=sb2=sb3=false;andOut=0;piston=0;log("↺ 复位","sys");paint();};
+build();paint();
 document.getElementById("b1").onclick=()=>document.getElementById("hb1").click();
 document.getElementById("b2").onclick=()=>document.getElementById("hb2").click();
 document.getElementById("b3").onclick=()=>document.getElementById("hb3").click();
-document.getElementById("run").onclick=()=>{
-  if(!running){
-    running=true;last=performance.now();
-    raf=requestAnimationFrame(loop);
-    log("▶ 运行仿真（等同 FluidSIM F9）","sys");
-  }
-};
-document.getElementById("pause").onclick=()=>{
-  running=false;log("⏸ 暂停","sys");
-};
-document.getElementById("reset").onclick=()=>{
-  sb1=sb2=sb3=false;andOut=0;piston=0;
-  log("↺ 复位","sys");paint();
-};
 
-build();paint();
 log("初始：1A1 活塞缩回，板材在模具座上方。按「运行仿真」后，同时点 SB1+SB2。","sys");
+
 </script>
 </body>
 </html>
