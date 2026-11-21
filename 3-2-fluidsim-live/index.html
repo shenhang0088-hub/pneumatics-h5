@@ -190,25 +190,25 @@ function build(){
 
   // ── 气源 (s3 = 空气压缩机+净化) ─────────────────────────────────────────
   svg.appendChild(el("rect",{x:36,y:170,width:100,height:60,rx:10,class:"node-box"}));
-  label(svg,86,195,"气源","node-t");
-  label(svg,86,214,"1Q 空压机","node-d");
+  label(86,195,"气源","node-t");
+  label(86,214,"1Q 空压机","node-d");
   fsImg("s3",44,174,84,48);
 
   // ── 双压阀 1V0（pn5 = 双压阀/与门）────────────────────────────────────
   svg.appendChild(el("rect",{x:210,y:170,width:80,height:60,rx:8,class:"node-box and",id:"andV"}));
-  label(svg,250,164,"双压阀 1V0","node-d");
+  label(250,164,"双压阀 1V0","node-d");
   fsImg("pn5",218,174,64,48);
 
   // ── SB1（顶部按钮）──────────────────────────────────────────────────────
   svg.appendChild(el("circle",{cx:160,cy:120,r:24,class:"btnface",id:"b1"}));
-  label(svg,160,125,"SB1","node-t");
+  label(160,125,"SB1","node-t");
   fsImg("ps0",146,104,28,28);
   poly(svg,[[184,132],[222,178]],{class:"air",id:"i1"});
   poly(svg,[[184,132],[222,178]],{class:"airflow",id:"i1f"});
 
   // ── SB2（底部按钮）──────────────────────────────────────────────────────
   svg.appendChild(el("circle",{cx:160,cy:280,r:24,class:"btnface",id:"b2"}));
-  label(svg,160,285,"SB2","node-t");
+  label(160,285,"SB2","node-t");
   fsImg("ps0",146,264,28,28);
   poly(svg,[[184,268],[222,240]],{class:"air",id:"i2"});
   poly(svg,[[184,268],[222,240]],{class:"airflow",id:"i2f"});
@@ -217,7 +217,7 @@ function build(){
   poly(svg,[[290,200],[350,200]],{class:"air",id:"toV"});
   poly(svg,[[290,200],[350,200]],{class:"airflow",id:"toVf"});
   svg.appendChild(el("rect",{x:350,y:170,width:70,height:60,rx:6,class:"node-box",id:"mainV"}));
-  label(svg,385,164,"主阀 1V1","node-d");
+  label(385,164,"主阀 1V1","node-d");
   fsImg("el4",358,174,54,48);
 
   // ── 主阀 → 气缸 1A1（a4 = 双作用气缸）──────────────────────────────────
@@ -225,11 +225,11 @@ function build(){
   poly(svg,[[420,218],[510,218]],{class:"air",id:"o2"});
   poly(svg,[[420,185],[510,182]],{class:"airflow",id:"o1f"});
   poly(svg,[[420,218],[510,218]],{class:"airflow",id:"o2f"});
-  label(svg,465,172,"A","lbl");
-  label(svg,465,232,"B","lbl");
+  label(465,172,"A","lbl");
+  label(465,232,"B","lbl");
 
   // 气缸
-  label(svg,575,160,"双作用气缸 1A1","node-d");
+  label(575,160,"双作用气缸 1A1","node-d");
   svg.appendChild(el("rect",{x:510,y:175,width:130,height:50,rx:4,class:"cyl-body"}));
   svg.appendChild(el("rect",{x:510,y:175,width:10,height:50,rx:2,class:"cyl-cap"}));
   svg.appendChild(el("rect",{x:630,y:175,width:10,height:50,rx:2,class:"cyl-cap"}));
@@ -254,20 +254,20 @@ function build(){
 
   // 板材
   svg.appendChild(el("rect",{x:620,y:320,width:120,height:14,rx:3,class:"sheet",id:"sheet"}));
-  label(svg,680,348,"塑料板材","node-d");
+  label(680,348,"塑料板材","node-d");
   // 模具座
   svg.appendChild(el("rect",{x:610,y:336,width:140,height:10,rx:2,class:"mold-base"}));
-  label(svg,680,358,"成型模具座","node-d");
+  label(680,358,"成型模具座","node-d");
 
   // ── 到位信号 1S1（伸出到位）─────────────────────────────────────────────
   svg.appendChild(el("rect",{x:520,y:380,width:110,height:42,rx:8,class:"end-sig",id:"endSig"}));
-  label(svg,575,398,"到位 1S1","node-d");
-  label(svg,575,414,"伸出到位信号","node-d");
+  label(575,398,"到位 1S1","node-d");
+  label(575,414,"伸出到位信号","node-d");
   fsImg("ps1",528,384,28,28);
 
   // ── 复位按钮 SB3（左侧下方）─────────────────────────────────────────────
   svg.appendChild(el("circle",{cx:380,y:392,cx:380,cy:392,r:24,class:"btnface warn",id:"b3"}));
-  label(svg,380,397,"SB3","node-t");
+  label(380,397,"SB3","node-t");
   fsImg("ps0",366,376,28,28);
 }
 
